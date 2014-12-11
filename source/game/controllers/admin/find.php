@@ -2,11 +2,11 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 /**
  *
- * Finding
+ * Find
  *
  * @author  Xy Ji
  */
-class Finding extends Front_Controller
+class Find extends Admin_Controller
 {
     public function __construct()
     {

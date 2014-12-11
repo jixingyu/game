@@ -25,7 +25,7 @@ class Front_Controller extends Base_Controller
     public function __construct()
     {
         parent::__construct();
-        // $this->uid = 1;//TODO
+        $this->uid = 1;//TODO
         //load libraries
         // $this->load->library(array('session','user_lib'));
         // $this->load->model('category_model');

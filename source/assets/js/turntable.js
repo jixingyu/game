@@ -205,7 +205,7 @@ BasicGame.Game.prototype = {
                 onSuccess: function(data) {
                     var resp = JSON.parse(data);
                     if (resp.code == 0) {
-                        _self.turn(+resp.data.prize, +resp.data.angle, +res.limit);
+                        _self.turn(+resp.data.prize, +resp.data.angle, +resp.limit);
                     }
                 },
             });

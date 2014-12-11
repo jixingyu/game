@@ -92,4 +92,16 @@ class Turntable extends Admin_Controller
         }
         $this->load->view('admin/turntable', $data);
     }
+
+    public function statistic()
+    {
+        $data = array();
+        $this->load->view('admin/turntable_statistic', $data);
+    }
+
+    public function down()
+    {
+        $statisticPath = $this->config->item('statistic_path');
+        force_download($filePath, NULL);
+    }
 }

@@ -10,10 +10,18 @@
     <title>游戏后台</title>
 
     <link href="<?php echo base_url('assets/css/bootstrap.min.css');?>" rel="stylesheet">
+    <link href="<?php echo base_url('assets/css/bootstrap-datetimepicker.min.css');?>" rel="stylesheet">
     <link href="<?php echo base_url('assets/css/plugins/metisMenu/metisMenu.min.css');?>" rel="stylesheet">
     <link href="<?php echo base_url('assets/css/sb-admin-2.css');?>" rel="stylesheet">
     <link href="<?php echo base_url('assets/font-awesome-4.1.0/css/font-awesome.min.css');?>" rel="stylesheet" type="text/css">
     <link href="<?php echo base_url('assets/css/game.css');?>" rel="stylesheet">
+
+    <script src="<?php echo base_url('assets/js/jquery.js');?>"></script>
+    <script src="<?php echo base_url('assets/js/bootstrap.min.js');?>"></script>
+    <script src="<?php echo base_url('assets/js/bootstrap-datetimepicker.min.js');?>"></script>
+    <script src="<?php echo base_url('assets/js/bootstrap-datetimepicker.zh-CN.js');?>"></script>
+    <script src="<?php echo base_url('assets/js/plugins/metisMenu/metisMenu.min.js');?>"></script>
+    <script src="<?php echo base_url('assets/js/sb-admin-2.js');?>"></script>
 </head>
 
 <body>
@@ -74,43 +82,55 @@
 		                            <a href="/admin/turntable">游戏参数配置</a>
 		                        </li>
 		                        <li>
-		                            <a href="">统计</a>
+		                            <a href="/admin/turntable/statistic">统计</a>
+		                        </li>
+		                    </ul>
+		                    <!-- /.nav-second-level -->
+		                </li>
+		                <li<?php echo ($tab == 'horserace') ? ' class="active"' : '';?>>
+		                    <a href="#"><i class="fa fa-edit fa-fw"></i> 赛马<span class="fa arrow"></span></a>
+		                    <ul class="nav nav-second-level">
+		                        <li>
+		                            <a href="/admin/horserace">游戏参数配置</a>
+		                        </li>
+		                        <li>
+		                            <a href="/admin/horserace/statistic">统计</a>
 		                        </li>
 		                    </ul>
 		                    <!-- /.nav-second-level -->
 		                </li>
 		                <li<?php echo ($tab == 'carrace') ? ' class="active"' : '';?>>
-		                    <a href="#"><i class="fa fa-edit fa-fw"></i> 赛马 / 赛车<span class="fa arrow"></span></a>
+		                    <a href="#"><i class="fa fa-edit fa-fw"></i> 赛车<span class="fa arrow"></span></a>
 		                    <ul class="nav nav-second-level">
 		                        <li>
-		                            <a href="">游戏参数配置</a>
+		                            <a href="/admin/carrace">游戏参数配置</a>
 		                        </li>
 		                        <li>
-		                            <a href="">统计</a>
+		                            <a href="/admin/carrace/statistic">统计</a>
 		                        </li>
 		                    </ul>
 		                    <!-- /.nav-second-level -->
 		                </li>
-		                <li<?php echo ($tab == 'quickspot') ? ' class="active"' : '';?>>
+		                <li<?php echo ($tab == 'spot') ? ' class="active"' : '';?>>
 		                    <a href="#"><i class="fa fa-edit fa-fw"></i> 找茬<span class="fa arrow"></span></a>
 		                    <ul class="nav nav-second-level">
 		                        <li>
-		                            <a href="">游戏参数配置</a>
+		                            <a href="/admin/spot">游戏参数配置</a>
 		                        </li>
 		                        <li>
-		                            <a href="">统计</a>
+		                            <a href="/admin/spot/statistic">统计</a>
 		                        </li>
 		                    </ul>
 		                    <!-- /.nav-second-level -->
 		                </li>
-		                <li<?php echo ($tab == 'finding') ? ' class="active"' : '';?>>
+		                <li<?php echo ($tab == 'find') ? ' class="active"' : '';?>>
 		                    <a href="#"><i class="fa fa-edit fa-fw"></i> 找东西<span class="fa arrow"></span></a>
 		                    <ul class="nav nav-second-level">
 		                        <li>
-		                            <a href="">游戏参数配置</a>
+		                            <a href="/admin/find">游戏参数配置</a>
 		                        </li>
 		                        <li>
-		                            <a href="">统计</a>
+		                            <a href="/admin/find/statistic">统计</a>
 		                        </li>
 		                    </ul>
 		                    <!-- /.nav-second-level -->
