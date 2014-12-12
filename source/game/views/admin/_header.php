@@ -171,3 +171,18 @@
 		    </div>
 		    <!-- /.navbar-static-side -->
 		</nav>
+
+		<div id="page-wrapper">
+		    <div class="container-fluid">
+
+    	        <?php if (!empty($error)): ?>
+		        <div class="alert alert-danger alert-dismissable">
+		            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+		            <?php echo $error;?>
+		        </div>
+		        <?php elseif (!empty($status)): ?>
+		        <div class="alert alert-success alert-dismissable">
+		            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+		            修改配置成功
+		        </div>
+		        <?php endif; ?>

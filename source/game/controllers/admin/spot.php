@@ -2,11 +2,11 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 /**
  *
- * Quickspot
+ * Spot
  *
  * @author  Xy Ji
  */
-class Quickspot extends Admin_Controller
+class Spot extends Admin_Controller
 {
     public function __construct()
     {

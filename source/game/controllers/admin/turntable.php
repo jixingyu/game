@@ -12,7 +12,7 @@ class Turntable extends Admin_Controller
     {
         parent::__construct();
         $this->load->model(array(
-            'turntable_model',
+            'turntable_model', 'game_log_model'
         ));
     }
 
@@ -62,28 +62,34 @@ class Turntable extends Admin_Controller
                 if ($probTotal > 100) {
                     $data['error'] = '初始几率设定出错';
                 } else {
-                    $this->load->library('upload');
+                    if ($_FILES['upImage']['error'] == 4) {
+                        $uploaded = true;
+                    } else {
+                        $this->load->library('upload');
 
-                    $upConfig = array(
-                        'file_name'     => 'turntable.' . pathinfo($_FILES['upImage']['name'], PATHINFO_EXTENSION),
-                        'upload_path'   => FCPATH . $this->config->item('turntable_image_path'),
-                        'allowed_types' => 'png',
-                        'max_size'      => $this->config->item('size_limit'),
-                        'overwrite'     => true,
-                    );
+                        $upConfig = array(
+                            'file_name'     => 'turntable.' . pathinfo($_FILES['upImage']['name'], PATHINFO_EXTENSION),
+                            'upload_path'   => FCPATH . $this->config->item('turntable_image_path'),
+                            'allowed_types' => 'png',
+                            'max_size'      => $this->config->item('size_limit'),
+                            'overwrite'     => true,
+                        );
 
-                    $this->upload->initialize($upConfig);
+                        $this->upload->initialize($upConfig);
 
-                    $uploaded = $this->upload->do_upload('upImage');
+                        $uploaded = $this->upload->do_upload('upImage');
+                    }
 
                     if (!$uploaded) {
                         $data['error'] = '上传图片出错：' . $this->upload->display_errors();
                     } else {
+                        if ($_FILES['upImage']['error'] != 4) {
+                            $image = $this->upload->data();
+                            $data['config']['image'] = $post['image'] = site_url($this->config->item('turntable_image_path') . $image['file_name']);
+                        }
                         foreach ($jsonKeyArr as $jsonKey) {
                             $post[$jsonKey] = json_encode($post[$jsonKey]);
                         }
-                        $image = $this->upload->data();
-                        $data['config']['image'] = $post['image'] = site_url($this->config->item('turntable_image_path') . $image['file_name']);
                         $this->turntable_model->update($post, array());
                         $data['status'] = 1;
                     }
@@ -95,13 +101,52 @@ class Turntable extends Admin_Controller
 
     public function statistic()
     {
-        $data = array();
+        $offset  = intval($this->input->get('o'));
+        $start   = $this->input->get('start');
+        $end     = $this->input->get('end');
+
+        $data    = array('logs' => array());
+        $start   = $start ? strtotime($start) : strtotime(date('Ymd'));
+        $end     = $end ? strtotime($end) : strtotime(date('Ymd'));
+
+        if ($start > $end) {
+            $data['error'] = '开始时间不能超过结束时间';
+        } else {
+            $count = $this->game_log_model->get_count(array(
+                'type' => 1,
+                'create_time >=' => $start,
+                'create_time <=' => $end,
+            ));
+            if ($count) {
+                $limit = $this->config->item('page_size');
+                $data['logs'] = $this->game_log_model->get_list(array(
+                    'type' => 1,
+                    'create_time >=' => $start,
+                    'create_time <=' => $end,
+                ), $limit, $offset);
+
+                $this->load->library('pagination');
+
+                $this->pagination->initialize_admin(array(
+                    'base_url'    => preg_replace('/(.*)(\?|&)o=.*/', '$1', site_url($this->input->server('REQUEST_URI'))),
+                    'total_rows'  => $count,
+                    'per_page'    => $limit,
+                    'page_query_string'    => true,
+                    'query_string_segment' => 'o'
+                ));
+            }
+        }
+
         $this->load->view('admin/turntable_statistic', $data);
     }
 
     public function down()
     {
-        $statisticPath = $this->config->item('statistic_path');
-        force_download($filePath, NULL);
+        // $statisticPath = $this->config->item('statistic_path');
+        // force_download($filePath, NULL);
+        // output_csv(array(
+        //     array('a','b'),
+        //     array(1,2)
+        // ));
     }
 }

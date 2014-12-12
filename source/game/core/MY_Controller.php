@@ -63,6 +63,7 @@ class Admin_Controller extends Base_Controller
         $this->load->vars(array(
             'username' => $this->curUser['username']
         ));
+        $this->load->helper('admin');
     }
 }
 
