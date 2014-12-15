@@ -15,7 +15,10 @@ class Turntable extends Front_Controller
 
     public function index()
     {
-    	$data = array('title' => '转盘');
+    	$data = array(
+            'title' => '转盘',
+            'isLogin' => $this->uid ? 1 : 0,
+        );
 
         $this->load->view('turntable', $data);
     }

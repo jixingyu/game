@@ -2,7 +2,7 @@
 
 <div class="row">
     <div class="col-lg-8">
-        <h1 class="page-header">转盘</h1>
+        <h1 class="page-header">赛马</h1>
 
         <div class="text-num">
             <form role="form" action="/admin/turntable" method="post" enctype="multipart/form-data">
@@ -84,13 +84,6 @@
                         </div>
                         <?php if (!empty($config['image'])) :?>
                         <image src="<?php echo $config['image'];?>">
-                        <?php endif;?>
-                        <div class="form-group">
-                            <label>上传开始按键图片(PNG)</label>
-                            <input type="file" name="startButton">
-                        </div>
-                        <?php if (!empty($config['start_button'])) :?>
-                        <image src="<?php echo $config['start_button'];?>">
                         <?php endif;?>
                         <p>
                             奖品角度范围：

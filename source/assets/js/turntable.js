@@ -213,30 +213,31 @@ BasicGame.Game.prototype = {
     },
 
     turn: function (prize, turnAngle, timeLimit) {
-        if(!!localStorage) {
+        if(!isLogin && !!localStorage) {
+            var today = new Date().toLocaleDateString();
             todayTimes = localStorage.getItem('todayTimes');
-            if (!todayTimes) {
+            lastDay = localStorage.getItem('lastDay');
+            if (!lastDay || today != lastDay) {
                 todayTimes = 0;
             }
-        }
 
-        if (todayTimes < timeLimit) {
-            this.ready = false;
-            if(!!localStorage) {
-                localStorage.setItem('todayTimes', ++todayTimes);
-            } else {
-                ++todayTimes;
+            if (todayTimes >= timeLimit) {
+                alert('超过3次');
+                return;
             }
-            this.turnGroup.angle = 0;
-            var circle = 3 + (Math.random() * 5 >>> 0);
-            var duration = 2000 + (Math.random() * 3000 >>> 0);
-            turnAngle = 360 * circle - turnAngle;
-            game.add.tween(this.turnGroup).to({angle: turnAngle}, duration, Phaser.Easing.Circular.Out, true);
-            var _self = this;
-            setTimeout(function(){_self.ready=true;}, duration);
-        } else {
-            alert('超过3次');
+
+            localStorage.setItem('todayTimes', ++todayTimes);
+            localStorage.setItem('lastDay', today);
         }
+        this.ready = false;
+
+        this.turnGroup.angle = 0;
+        var circle = 3 + (Math.random() * 5 >>> 0);
+        var duration = 2000 + (Math.random() * 3000 >>> 0);
+        turnAngle = 360 * circle - turnAngle;
+        game.add.tween(this.turnGroup).to({angle: turnAngle}, duration, Phaser.Easing.Circular.Out, true);
+        var _self = this;
+        setTimeout(function(){_self.ready=true;}, duration);
     }
 
     // quitGame: function (pointer) {

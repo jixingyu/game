@@ -13,15 +13,14 @@ class MY_Pagination extends CI_Pagination
     {
         $config['uri_segment']     = 4;
 
-        $config['full_tag_open']    = '<div class="row">'
-                                    . '<div class="dataTables_paginate paging_simple_numbers">'
+        $config['full_tag_open']    = '<div>'
                                     . '<ul class="pagination">';
-        $config['full_tag_close']   = '</ul></div></div>';
+        $config['full_tag_close']   = '</ul></div>';
 
-        $config['first_link']       = 'first';
+        $config['first_link']       = '首页';
         $config['first_tag_open']   = '<li>';
         $config['first_tag_close']  = '</li>';
-        $config['last_link']        = 'last';
+        $config['last_link']        = '尾页';
         $config['last_tag_open']    = '<li>';
         $config['last_tag_close']   = '</li>';
 
