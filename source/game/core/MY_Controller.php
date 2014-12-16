@@ -21,6 +21,7 @@ class Front_Controller extends Base_Controller
 {
     private $meta = array();
     private $title = '';
+    public $checkLogin = true;
 
     public function __construct()
     {

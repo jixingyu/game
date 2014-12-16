@@ -8,6 +8,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  */
 class Turntable extends Front_Controller
 {
+    public $checkLogin = false;
+    public $type = 1;
+
     public function __construct()
     {
         parent::__construct();
@@ -36,8 +39,9 @@ class Turntable extends Front_Controller
 
         $this->cacheid = 'turntable' . $this->uid;
 
+        $isRandom = 1;
         $prize = false;
-        $prizeArr = array(1, 2, 3);
+        $prizeArr = array(1,2,3,4,5,6,7,8);
 
         $today = strtotime(date('Ymd'));
         $userData = $this->cache->get($this->cacheid);
@@ -50,40 +54,39 @@ class Turntable extends Front_Controller
 
         $userData['total']++;
         // 每百次中二等奖 , 每千次中一等奖
-        foreach ($prizeArr as $key) {
-            if (!empty($config['range'][$key])) {
-                $range = $config['range'][$key];
-                $lastIndex = 'lastIndex' . $key;
-                if (($userData['total'] % $range == 0) &&
-                    ($userData['total'] != 0) &&
-                    ($userData[$lastIndex] <= ($userData['total'] - $range))) {
-                    $prize = $key;
-                    break;
-                }
-            }
-        }
-        if ($prize === false) {
+        if ($userData['total'] != 0) {
             foreach ($prizeArr as $key) {
-                if (!empty($config['max'][$key])) {
-                    $max = $config['max'][$key];
-                    if ($userData['todayPrizeCount'][$key] >= $max) {
-                        $prize = 0;
+                if (!empty($config['range'][$key])) {
+                    $range = $config['range'][$key];
+                    $lastIndex = 'lastIndex' . $key;
+                    if (($userData['total'] % $range == 0) &&
+                        ($userData[$lastIndex] <= ($userData['total'] - $range))) {
+                        $prize = $key;
+                        $isRandom = 0;
                         break;
                     }
                 }
             }
         }
+
         if ($prize === false) {
             $rand = mt_rand(1, 1000);
             $probArr = $config['prob'];
             $luckRange = 0;
             foreach ($probArr as $key => $value) {
-                $value = $value * 10;
-                if ($rand > $luckRange && $rand <= $luckRange + $value) {
-                    $prize = $key;
-                    break;
+                $value = intval($value * 10);
+                if ($value == 0) {
+                    continue;
                 }
-                $luckRange += $value;
+                if (!empty($config['max'][$key]) && $userData['todayPrizeCount'][$key] >= $config['max'][$key]) {
+                    $luckRange += $value;
+                } else {
+                    if (($rand > $luckRange) && ($rand <= $luckRange + $value)) {
+                        $prize = $key;
+                        break;
+                    }
+                    $luckRange += $value;
+                }
             }
         }
         $prize = $prize ?: 0;
@@ -98,10 +101,11 @@ class Turntable extends Front_Controller
         // log
         $this->game_log_model->insert(array(
             'uid' => $this->uid,
-            'type' => 1,
+            'type' => $this->type,
             'prize' => $prize,
             'consume_points' => $consumePoints,
             'create_time' => time(),
+            'is_random' => $isRandom,
         ));
 
         // cache
@@ -114,8 +118,10 @@ class Turntable extends Front_Controller
         foreach ($prizeArr as $key) {
             if (!empty($config['range'][$key]) && $prize == $key) {
                 $lastIndex = 'lastIndex' . $key;
-                $points = $config['points'][$key];
                 $userData[$lastIndex] = $userData['total'];
+                if (is_numeric($config['awards'][$key])) {
+                    $points = $config['awards'][$key];
+                }
                 break;
             }
         }
@@ -124,11 +130,16 @@ class Turntable extends Front_Controller
         // 计算积分 remote $points TODO
 
         $angle = 0;
-        for ($i = 0; $i < $prize; $i++) {
-            $angle += $config['angle'][$i];
+        foreach (array(1,2,0,3,4,0,5,6,0,7,8,0) as $value) {
+            if ($prize == $value) {
+                $angle += mt_rand(1, $config['angle'][$value] - 1);
+                break;
+            } else {
+                $angle += $config['angle'][$value];
+            }
         }
-        $angle += mt_rand(1, $config['angle'][$i] - 1);
-        // 0：谢谢参与 1：一等奖，2：二等奖，3：鼓励奖
+
+        // 0：谢谢参与
     	$this->response(array(
     		'prize' => $prize,
             'angle' => $angle,
@@ -171,7 +182,7 @@ class Turntable extends Front_Controller
         if (empty($config)) {
             $this->load->model('turntable_model');
             $config = $this->turntable_model->get_one(array());
-            foreach (array('range', 'points', 'prob', 'max', 'angle') as $value) {
+            foreach (array('range', 'awards', 'prob', 'max', 'angle') as $value) {
                 $config[$value] = json_decode($config[$value], true);
             }
             $this->cache->save('turntable_config', $config);
@@ -185,17 +196,17 @@ class Turntable extends Front_Controller
         $userData['today'] = $today;
         $userData['todayNum'] = $this->game_log_model->get_count(array(
             'uid' => $this->uid,
-            'type' => 1,
+            'type' => $this->type,
             'create_time >=' => $today,
         ));
         $userData['total'] = $this->game_log_model->get_count(array(
             'uid' => $this->uid,
-            'type' => 1
+            'type' => $this->type
         ));
 
         $todayPrizeCount = $this->game_log_model->prize_count(array(
             'uid' => $this->uid,
-            'type' => 1,
+            'type' => $this->type,
             'prize >' => 0,
             'create_time >=' => $today,
         ), 'prize');
@@ -209,16 +220,16 @@ class Turntable extends Front_Controller
         foreach ($prizeArr as $key) {
             if (!empty($config['range'][$key])) {
                 $lastIndex = 'lastIndex' . $key;
-                $lastPrize = $this->game_log_model->get_one(array(
+                $lastPrize = $this->game_log_model->get_list(array(
                     'uid' => $this->uid,
-                    'type' => 1,
-                    'prize' => 1,
-                ));
+                    'type' => $this->type,
+                    'prize' => $key,
+                ), 1, 0, 'id');
                 if (!empty($lastPrize)) {
                     $userData[$lastIndex] = $this->game_log_model->get_count(array(
                         'uid' => $this->uid,
-                        'type' => 1,
-                        'create_time <=' => $lastPrize['create_time'],
+                        'type' => $this->type,
+                        'id <=' => $lastPrize[0]['id'],
                     ));
                 } else {
                     $userData[$lastIndex] = 0;
