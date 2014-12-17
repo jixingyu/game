@@ -8,12 +8,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  */
 class Turntable extends Admin_Controller
 {
-    protected $type = 1;
     public function __construct()
     {
         parent::__construct();
         $this->load->model(array(
-            'turntable_model', 'game_log_model'
+            'turntable_model', 'turntable_log_model'
         ));
     }
 
@@ -124,15 +123,13 @@ class Turntable extends Admin_Controller
         if ($start > $end) {
             $data['error'] = '开始时间不能超过结束时间';
         } else {
-            $count = $this->game_log_model->get_count(array(
-                'type' => $this->type,
+            $count = $this->turntable_log_model->get_count(array(
                 'create_time >=' => $start,
                 'create_time <=' => $end,
             ));
             if ($count) {
                 $limit = $this->config->item('page_size');
-                $data['logs'] = $this->game_log_model->get_list(array(
-                    'type' => $this->type,
+                $data['logs'] = $this->turntable_log_model->get_list(array(
                     'create_time >=' => $start,
                     'create_time <=' => $end,
                 ), $limit, $offset);

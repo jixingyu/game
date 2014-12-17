@@ -8,7 +8,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  */
 class Horserace extends Front_Controller
 {
-    public $type = 1;
     public function __construct()
     {
         parent::__construct();
@@ -16,7 +15,11 @@ class Horserace extends Front_Controller
 
     public function index()
     {
-    	$data = array('title' => '赛马');
+        $config = $this->getConfig();
+    	$data = array(
+            'title' => '赛马',
+            'chip'  => $config['chip'],
+        );
 
         $this->load->view('horserace', $data);
     }
@@ -27,124 +30,181 @@ class Horserace extends Front_Controller
 
         $config = $this->getConfig();
 
-        $this->load->model('game_log_model');
+        $this->load->model(array('horserace_log_model', 'horserace_play_model'));
 
-        $this->cacheid = 'horserace' . $this->uid;
+        $playRank = array(1,2,3);
+        $rank = array(1,2,3,4,5,6,7,8);
+        $rankPoints = array();
+        foreach ($playRank as $rankK) {
+            $tmp = intval($this->input->get('rank' . $rankK));
+            if ($tmp) {
+                $rankList[$rankK] = $tmp;
+                $rankPoints[$rankK] = intval($this->input->get('rankPoints' . $rankK));
+            }
+        }
+        if (empty($rankList)) {
+            $this->response('Bad Request', 404);
+        }
 
         $isRandom = 1;
-        $prize = false;
-        $prizeArr = array(1,2,3);
-
-        $userData = $this->cache->get($this->cacheid);
-        if (empty($userData)) {
-            $userData = $this->userData($config, $prizeArr);
-        }
-        if (empty($userData)) {
-            $this->response('server error!', 500);
-        }
-
-        $userData['total']++;
-        // 每百次中二等奖 , 每千次中一等奖
-        if ($userData['total'] != 0) {
-            foreach ($prizeArr as $key) {
-                if (!empty($config['range'][$key])) {
-                    $range = $config['range'][$key];
-                    $lastIndex = 'lastIndex' . $key;
-                    if (($userData['total'] % $range == 0) &&
-                        ($userData[$lastIndex] <= ($userData['total'] - $range))) {
-                        $prize = $key;
-                        break;
-                    }
-                }
-            }
-        }
-        if ($prize === false) {
-            foreach ($prizeArr as $key) {
-                if (!empty($config['max'][$key])) {
-                    $max = $config['max'][$key];
-                    if ($userData['todayPrizeCount'][$key] >= $max) {
-                        $prize = 0;
-                        break;
-                    }
-                }
-            }
-        }
-        if ($prize === false) {
-            $rand = mt_rand(1, 1000);
-            $probArr = $config['prob'];
-            $luckRange = 0;
-            foreach ($probArr as $key => $value) {
-                $value = intval($value * 10);
-                if ($value == 0) {
-                    continue;
-                }
-                if (!empty($config['max'][$key]) && $userData['todayPrizeCount'][$key] >= $config['max'][$key]) {
-                    $luckRange += $value;
-                } else {
-                    if (($rand > $luckRange) && ($rand <= $luckRange + $value)) {
-                        $prize = $key;
-                        break;
-                    }
-                    $luckRange += $value;
-                }
-            }
-        }
-        $prize = $prize ?: 0;
-
-        if ($userData['todayNum'] >= $config['free_num']) {
-            //TODO 消耗积分
-            $consumePoints = $config['consume_points'];
+        $points = -array_sum($rankPoints);
+        $updPlayData = array();
+        $playData = $this->horserace_play_model->get_one(array(
+            'uid' => $this->uid,
+        ));
+        if (empty($playData)) {
+            $updPlayData = $playData = array(
+                'cont_win_num'   => 0,
+                'force_lose_num' => 0,
+                'lose_num'       => 0,
+                'lose_points'    => 0,
+            );
+            $first = true;
         } else {
-            $consumePoints = 0;
+            $first = false;
+        }
+
+        // 连赢
+        if ($playData['cont_win_num'] == $config['cont_win_num'] && $playData['force_lose_num'] < $config['force_lose_num']) {
+            // force lose
+            $len = count($playRank);
+            $tmp = array();
+
+            for ($i = 1; $i <= $len; $i++) {
+                if (isset($rankList[$i]) && !in_array($rankList[$i], $tmp)) {
+                    $rankId = $rankList[$i];
+                    unset($rank[$rankId - 1]);
+
+                    $randomKey = array_rand($rank, 1);
+                    unset($rank[$randomKey]);
+                    $rank[$rankId - 1] = $rankId;
+                    $tmp[] = $randomKey + 1;
+                } else {
+                    $randomKey = array_rand($rank, 1);
+                    unset($rank[$randomKey]);
+                    $tmp[] = $randomKey + 1;
+                }
+            }
+            shuffle($rank);
+            $rank = array_merge($tmp, $rank);
+            $isRandom = 0;
+
+            if ($playData['force_lose_num'] + 1 == $config['force_lose_num']) {
+                $updPlayData['force_lose_num'] = 0;
+                $updPlayData['cont_win_num'] = 0;
+            } else {
+                $updPlayData['force_lose_num'] = $playData['force_lose_num'] + 1;
+            }
+
+            $updPlayData['lose_num'] = $playData['lose_num'] + 1;
+            $updPlayData['lose_points'] = $playData['lose_points'] - $points;
+
+            // shuffle($rank);
+
+            // $exchange = array();
+            // foreach ($rank as $k => $id) {
+            //     if (isset($rankList[$k + 1]) && $rankList[$k + 1] == $id) {
+            //         $exchange[$k] = $id;
+            //     }
+            // }
+
+            // if (!empty($exchange)) {
+            //     $tmp = array_diff(array_keys($rank), array_keys($exchange));
+            //     $tmp = array_rand($tmp, count($exchange));
+            //     foreach ($exchange as $k => $rankV) {
+            //         $tmpK = array_pop($tmp);
+            //         $rank[$k] = $rank[$tmpK];
+            //         $rank[$tmpK] = $rankV;
+            //     }
+            // }
+        } elseif (($playData['lose_num'] >= $config['lose_num'] || $playData['lose_points'] >= $config['lose_points'])) {
+            $tmp = array_keys($rankPoints);
+            shuffle($tmp);
+            foreach ($tmp as $rankK) {
+                if ($rankPoints[$rankK] <= $config['force_win_points']) {
+                    // force win
+                    $result = $this->randRank($playRank, $config, $rank, $rankList, $rankPoints, $rankK);
+                    $rank = $result['rank'];
+                    $isRandom = 0;
+                    $updPlayData['cont_win_num'] = $playData['cont_win_num'] + 1;
+                    $updPlayData['lose_num'] = 0;
+                    $points += $result['win'];
+                    break;
+                }
+            }
+        }
+        if ($isRandom) {
+            $result = $this->randRank($playRank, $config, $rank, $rankList, $rankPoints);
+            $rank = $result['rank'];
+            if ($result['win']) {
+                $updPlayData['cont_win_num'] = $playData['cont_win_num'] + 1;
+                $points += $result['win'];
+            } else {
+                $updPlayData['cont_win_num'] = 0;
+                $updPlayData['lose_num'] = $playData['lose_num'] + 1;
+                $updPlayData['lose_points'] = $playData['lose_points'] - $points;
+            }
         }
 
         // log
-        $this->game_log_model->insert(array(
+        $currentTime = time();
+        $this->horserace_log_model->insert(array(
             'uid' => $this->uid,
-            'type' => 1,
-            'prize' => $prize,
-            'consume_points' => $consumePoints,
-            'create_time' => time(),
+            'rank1' => isset($rankList[1]) ? $rankList[1] : 0,
+            'rank2' => isset($rankList[2]) ? $rankList[2] : 0,
+            'rank3' => isset($rankList[3]) ? $rankList[3] : 0,
+            'rank' => json_encode($rank),
+            'create_time' => $currentTime,
             'is_random' => $isRandom,
         ));
-
-        // cache
-        $userData['todayNum']++;
-        $points = -$consumePoints;
-        if ($prize > 0) {
-            $userData['todayPrizeCount'][$prize]++;
+        $updPlayData['update_time'] = $currentTime;
+        if ($first) {
+            $updPlayData['uid'] = $this->uid;
+            $updPlayData['create_time'] = $currentTime;
+            $this->horserace_play_model->insert($updPlayData);
+        } else {
+            $this->horserace_play_model->update($updPlayData, array('uid' => $this->uid));
         }
 
-        foreach ($prizeArr as $key) {
-            if (!empty($config['range'][$key]) && $prize == $key) {
-                $lastIndex = 'lastIndex' . $key;
-                $userData[$lastIndex] = $userData['total'];
-                if (is_numeric($config['awards'][$key])) {
-                    $points = $config['awards'][$key];
-                }
-                break;
-            }
-        }
-
-        $this->cache->save($this->cacheid, $userData);
         // 计算积分 remote $points TODO
-
-        $angle = 0;
-        foreach (array(1,2,0,3,4,0,5,6,0,7,8,0) as $value) {
-            if ($prize == $value) {
-                $angle += mt_rand(1, $config['angle'][$value] - 1);
-                break;
-            } else {
-                $angle += $config['angle'][$value];
-            }
-        }
 
         // 0：谢谢参与
     	$this->response(array(
-    		'prize' => $prize,
-            'angle' => $angle,
-            'limit' => $config['free_num'],
+    		'rank'  => $rank
 		));
+    }
+
+    private function randRank($playRank, $config, $rank, $rankList, $rankPoints, $rankK = false)
+    {
+        $len = count($rank);
+        $tmp = array();
+        $win = 0;
+
+        for ($i = 1; $i < $len; $i++) {
+            $randomKey = array_rand($rank, 1);
+            if ($i == $rankK) {
+                $id = $rankList[$i];
+                unset($rank[$id - 1]);
+                $tmp[] = $id;
+                $win += $rankPoints[$i] * ($config['multiple'][$i] + 2);
+            } elseif (isset($rankList[$i]) && $rankList[$i] == $randomKey + 1 &&
+                $this->prob($config['exclude_prob'][$i])) {
+                unset($rank[$randomKey]);
+                $randomKey2 = array_rand($rank, 1);
+                unset($rank[$randomKey2]);
+                $rank[$randomKey] = $randomKey + 1;
+                $tmp[] = $randomKey2 + 1;
+            } else {
+                if (isset($rankList[$i]) && $rankList[$i] == $randomKey + 1) {
+                    $win += $rankPoints[$i] * ($config['multiple'][$i] + 2);
+                }
+                unset($rank[$randomKey]);
+                $tmp[] = $randomKey + 1;
+            }
+        }
+        shuffle($rank);
+        $rank = array_merge($tmp, $rank);
+        return array('rank' => $rank, 'win' => $win);
     }
 
     private function getConfig()
@@ -161,52 +221,13 @@ class Horserace extends Front_Controller
         return $config;
     }
 
-    private function userData($config, $prizeArr)
+    private function prob($prob)
     {
-        $userData = array();
-        $userData['total'] = $this->game_log_model->get_count(array(
-            'uid' => $this->uid,
-            'type' => $this->type
-        ));
-        $lastLose = $this->game_log_model->get_one(array(
-            'uid' => $this->uid,
-            'type' => $this->type,
-            'prize =' => 0,
-        ), 1, 0, 'create_time');
-        if (!empty($lastLose)) {
-        	$lastLoseIndex = $this->game_log_model->get_count(array(
-	            'uid' => $this->uid,
-	            'type' => $this->type,
-	            'id <=' => $lastLose[0]['id'],
-	        ));
+        $rand = mt_rand(1, 100);
+        if ($rand <= $prob) {
+            return true;
         } else {
-        	$lastLoseIndex = 0;
+            return false;
         }
-
-        if ($userData['total'] == $lastLoseIndex) {
-	        $lastWin = $this->game_log_model->get_one(array(
-	            'uid' => $this->uid,
-	            'type' => $this->type,
-	            'prize >' => 0,
-	        ), 1, 0, 'create_time');
-	        if (!empty($lastWin)) {
-	        	$lastWinIndex = $this->game_log_model->get_count(array(
-		            'uid' => $this->uid,
-		            'type' => $this->type,
-		            'id <=' => $lastWin[0]['id'],
-		        ));
-	        } else {
-	        	$lastWinIndex = 0;
-	        }
-	        $userData['continuousWinNum']  = 0;
-	        $userData['continuousLoseNum'] = $userData['total'] - $lastWinIndex;
-        } else {
-	        $userData['continuousWinNum']  = $userData['total'] - $lastLoseIndex;
-	        $userData['continuousLoseNum'] = 0;
-        }
-
-
-
-        return $userData;
     }
 }

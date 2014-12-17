@@ -9,7 +9,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class Turntable extends Front_Controller
 {
     public $checkLogin = false;
-    public $type = 1;
 
     public function __construct()
     {
@@ -35,7 +34,7 @@ class Turntable extends Front_Controller
         if (empty($this->uid)) {
             $this->guestLottery($config);
         }
-        $this->load->model('game_log_model');
+        $this->load->model(array('turntable_log_model', 'turntable_play_model'));
 
         $this->cacheid = 'turntable' . $this->uid;
 
@@ -44,25 +43,60 @@ class Turntable extends Front_Controller
         $prizeArr = array(1,2,3,4,5,6,7,8);
 
         $today = strtotime(date('Ymd'));
-        $userData = $this->cache->get($this->cacheid);
-        if (empty($userData) || $userData['today'] != $today) {
-            $userData = $this->userData($today, $config, $prizeArr);
-        }
-        if (empty($userData)) {
-            $this->response('server error!', 500);
+
+        $playData = $this->turntable_play_model->get_one(array(
+            'uid' => $this->uid,
+        ));
+        if (empty($playData)) {
+            $playData = array(
+                'range'     => array(),
+                'prize_num' => array(),
+                'today_num' => 0,
+            );
+            $first = true;
+            foreach ($prizeArr as $key) {
+                $playData['range'][$key] = 1;
+                $playData['prize_num'][$key] = 0;
+            }
+        } else {
+            if ($playData['update_time'] < $today) {
+                $playData['prize_num'] = array();
+                $playData['today_num'] = 0;
+                foreach ($prizeArr as $key) {
+                    $playData['prize_num'][$key] = 0;
+                    $playData['range'][$key]++;
+                }
+            } else {
+                $playData['range'] = json_decode($playData['range'], true);
+                $playData['prize_num'] = json_decode($playData['prize_num'], true);
+                foreach ($prizeArr as $key) {
+                    $playData['range'][$key]++;
+                }
+            }
+            $first = false;
         }
 
-        $userData['total']++;
+        $playData['today_num']++;
+        if ($playData['today_num'] >= $config['free_num']) {
+            //TODO 消耗积分
+            $consumePoints = $config['consume_points'];
+        } else {
+            $consumePoints = 0;
+        }
+        $points = -$consumePoints;
+
         // 每百次中二等奖 , 每千次中一等奖
-        if ($userData['total'] != 0) {
+        if (!$first) {
             foreach ($prizeArr as $key) {
                 if (!empty($config['range'][$key])) {
-                    $range = $config['range'][$key];
-                    $lastIndex = 'lastIndex' . $key;
-                    if (($userData['total'] % $range == 0) &&
-                        ($userData[$lastIndex] <= ($userData['total'] - $range))) {
+                    if ($playData['prize_num'][$key] < $config['max'][$key] && ($playData['range'][$key] % $config['range'][$key]) == 0) {
                         $prize = $key;
+                        $playData['range'][$key] = 0;
+                        $playData['prize_num'][$key]++;
                         $isRandom = 0;
+                        if (is_numeric($config['awards'][$key])) {
+                            $points += $config['awards'][$key];
+                        }
                         break;
                     }
                 }
@@ -78,11 +112,15 @@ class Turntable extends Front_Controller
                 if ($value == 0) {
                     continue;
                 }
-                if (!empty($config['max'][$key]) && $userData['todayPrizeCount'][$key] >= $config['max'][$key]) {
+                if (!empty($config['max'][$key]) && $playData['prize_num'][$key] >= $config['max'][$key]) {
                     $luckRange += $value;
                 } else {
                     if (($rand > $luckRange) && ($rand <= $luckRange + $value)) {
                         $prize = $key;
+                        $playData['prize_num'][$key]++;
+                        if (is_numeric($config['awards'][$key])) {
+                            $points += $config['awards'][$key];
+                        }
                         break;
                     }
                     $luckRange += $value;
@@ -91,42 +129,27 @@ class Turntable extends Front_Controller
         }
         $prize = $prize ?: 0;
 
-        if ($userData['todayNum'] >= $config['free_num']) {
-            //TODO 消耗积分
-            $consumePoints = $config['consume_points'];
-        } else {
-            $consumePoints = 0;
-        }
-
+        $currentTime = time();
         // log
-        $this->game_log_model->insert(array(
+        $this->turntable_log_model->insert(array(
             'uid' => $this->uid,
-            'type' => $this->type,
             'prize' => $prize,
             'consume_points' => $consumePoints,
-            'create_time' => time(),
+            'create_time' => $currentTime,
             'is_random' => $isRandom,
         ));
-
-        // cache
-        $userData['todayNum']++;
-        $points = -$consumePoints;
-        if ($prize > 0) {
-            $userData['todayPrizeCount'][$prize]++;
+        $playData['update_time'] = $currentTime;
+        $playData['range'] = json_encode($playData['range']);
+        $playData['prize_num'] = json_encode($playData['prize_num']);
+        if ($first) {
+            $playData['uid'] = $this->uid;
+            $playData['create_time'] = $currentTime;
+            $this->turntable_play_model->insert($playData);
+        } else {
+            unset($playData['uid'], $playData['create_time']);
+            $this->turntable_play_model->update($playData, array('uid' => $this->uid));
         }
 
-        foreach ($prizeArr as $key) {
-            if (!empty($config['range'][$key]) && $prize == $key) {
-                $lastIndex = 'lastIndex' . $key;
-                $userData[$lastIndex] = $userData['total'];
-                if (is_numeric($config['awards'][$key])) {
-                    $points = $config['awards'][$key];
-                }
-                break;
-            }
-        }
-
-        $this->cache->save($this->cacheid, $userData);
         // 计算积分 remote $points TODO
 
         $angle = 0;
@@ -190,57 +213,52 @@ class Turntable extends Front_Controller
         return $config;
     }
 
-    private function userData($today, $config, $prizeArr)
-    {
-        $userData = array();
-        $userData['today'] = $today;
-        $userData['todayNum'] = $this->game_log_model->get_count(array(
-            'uid' => $this->uid,
-            'type' => $this->type,
-            'create_time >=' => $today,
-        ));
-        $userData['total'] = $this->game_log_model->get_count(array(
-            'uid' => $this->uid,
-            'type' => $this->type
-        ));
+    // private function playData($today, $config, $prizeArr)
+    // {
+    //     $playData = array();
+    //     $playData['today'] = $today;
+    //     $playData['todayNum'] = $this->turntable_log_model->get_count(array(
+    //         'uid' => $this->uid,
+    //         'create_time >=' => $today,
+    //     ));
+    //     $playData['total'] = $this->turntable_log_model->get_count(array(
+    //         'uid' => $this->uid,
+    //     ));
 
-        $todayPrizeCount = $this->game_log_model->prize_count(array(
-            'uid' => $this->uid,
-            'type' => $this->type,
-            'prize >' => 0,
-            'create_time >=' => $today,
-        ), 'prize');
-        if (!empty($todayPrizeCount)) {
-            foreach ($todayPrizeCount as $key => $value) {
-                $tmpPrize = $value['prize'];
-                $userData['todayPrizeCount'][$tmpPrize] = $value['cnt'];
-            }
-        }
+    //     $todayPrizeCount = $this->turntable_log_model->prize_count(array(
+    //         'uid' => $this->uid,
+    //         'prize >' => 0,
+    //         'create_time >=' => $today,
+    //     ), 'prize');
+    //     if (!empty($todayPrizeCount)) {
+    //         foreach ($todayPrizeCount as $key => $value) {
+    //             $tmpPrize = $value['prize'];
+    //             $playData['todayPrizeCount'][$tmpPrize] = $value['cnt'];
+    //         }
+    //     }
 
-        foreach ($prizeArr as $key) {
-            if (!empty($config['range'][$key])) {
-                $lastIndex = 'lastIndex' . $key;
-                $lastPrize = $this->game_log_model->get_list(array(
-                    'uid' => $this->uid,
-                    'type' => $this->type,
-                    'prize' => $key,
-                ), 1, 0, 'id');
-                if (!empty($lastPrize)) {
-                    $userData[$lastIndex] = $this->game_log_model->get_count(array(
-                        'uid' => $this->uid,
-                        'type' => $this->type,
-                        'id <=' => $lastPrize[0]['id'],
-                    ));
-                } else {
-                    $userData[$lastIndex] = 0;
-                }
-            }
+    //     foreach ($prizeArr as $key) {
+    //         if (!empty($config['range'][$key])) {
+    //             $lastIndex = 'lastIndex' . $key;
+    //             $lastPrize = $this->turntable_log_model->get_list(array(
+    //                 'uid' => $this->uid,
+    //                 'prize' => $key,
+    //             ), 1, 0, 'id');
+    //             if (!empty($lastPrize)) {
+    //                 $playData[$lastIndex] = $this->turntable_log_model->get_count(array(
+    //                     'uid' => $this->uid,
+    //                     'id <=' => $lastPrize[0]['id'],
+    //                 ));
+    //             } else {
+    //                 $playData[$lastIndex] = 0;
+    //             }
+    //         }
 
-            if (!isset($userData['todayPrizeCount'][$key])) {
-                $userData['todayPrizeCount'][$key] = 0;
-            }
-        }
+    //         if (!isset($playData['todayPrizeCount'][$key])) {
+    //             $playData['todayPrizeCount'][$key] = 0;
+    //         }
+    //     }
 
-        return $userData;
-    }
+    //     return $playData;
+    // }
 }

@@ -13,22 +13,22 @@
                     <div class="panel-body">
                         <p>
                             每注积分
-                            <input type="text" name="consume_points" value="<?php echo $config['consume_points'];?>">
+                            <input type="text" name="chip" value="<?php echo $config['chip'];?>">
                         </p>
                         <p>
                             当用户连续赢
-                            <input type="text" name="max_win_num" value="<?php echo $config['max_win_num'];?>">
+                            <input type="text" name="cont_win_num" value="<?php echo $config['cont_win_num'];?>">
                             次，则接下来
-                            <input type="text" name="lose_num" value="<?php echo $config['lose_num'];?>">
+                            <input type="text" name="force_lose_num" value="<?php echo $config['force_lose_num'];?>">
                             次必输，然后重新计数；
                         </p>
                         <p>
                             当用户累计输
-                            <input type="text" name="max_lose_num" value="<?php echo $config['max_lose_num'];?>">
+                            <input type="text" name="lose_num" value="<?php echo $config['lose_num'];?>">
                             场次比赛或者累计输
-                            <input type="text" name="max_lose_points" value="<?php echo $config['max_lose_points'];?>">
+                            <input type="text" name="lose_points" value="<?php echo $config['lose_points'];?>">
                             积分，可以在下次下注
-                            <input type="text" name="min_win_points" value="<?php echo $config['min_win_points'];?>">
+                            <input type="text" name="force_win_points" value="<?php echo $config['force_win_points'];?>">
                             以下的情况下必中一次，然后重新计数。
                         </p>
                     </div>
