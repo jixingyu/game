@@ -26,6 +26,7 @@ class Front_Controller extends Base_Controller
     public function __construct()
     {
         parent::__construct();
+        $this->load->driver('cache', array('adapter' => 'file'));
         $this->uid = 1;//TODO
         //load libraries
         // $this->load->library(array('session','user_lib'));

@@ -74,7 +74,7 @@ class Turntable extends Admin_Controller
                         $this->load->library('upload');
 
                         $upConfig = array(
-                            'file_name'     => 'turntable.' . pathinfo($_FILES['upImage']['name'], PATHINFO_EXTENSION),
+                            'file_name'     => 'turntable' . rand(1,100) . '.' . pathinfo($_FILES['upImage']['name'], PATHINFO_EXTENSION),
                             'upload_path'   => FCPATH . $this->config->item('turntable_image_path'),
                             'allowed_types' => 'png',
                             'max_size'      => $this->config->item('size_limit'),
@@ -91,7 +91,11 @@ class Turntable extends Admin_Controller
                     } else {
                         if ($_FILES['upImage']['error'] != 4) {
                             $image = $this->upload->data();
-                            $data['config']['image'] = $post['image'] = site_url($this->config->item('turntable_image_path') . $image['file_name']);
+                            $post['image'] = $this->config->item('turntable_image_path') . $image['file_name'];
+                            $data['config']['image'] = site_url($this->config->item('turntable_image_path') . $image['file_name']);
+                            if (file_exists(FCPATH . $config['image']) && $config['image'] != $post['image']) {
+                                unlink(FCPATH . $config['image']);
+                            }
                         }
                         foreach ($jsonKeyArr as $jsonKey) {
                             $post[$jsonKey] = json_encode($post[$jsonKey]);

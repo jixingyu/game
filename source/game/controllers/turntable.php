@@ -17,8 +17,10 @@ class Turntable extends Front_Controller
 
     public function index()
     {
+        $config = $this->getConfig();
     	$data = array(
             'title' => '转盘',
+            'image' => $config['image'],
             'isLogin' => $this->uid ? 1 : 0,
         );
 
@@ -27,8 +29,6 @@ class Turntable extends Front_Controller
 
     public function lottery()
     {
-        $this->load->driver('cache', array('adapter' => 'file'));
-
         $config = $this->getConfig();
 
         if (empty($this->uid)) {

@@ -108,7 +108,7 @@ BasicGame.Preloader.prototype = {
         //  Here we load the rest of the assets our game needs.
         //  As this is just a Project Template I've not provided these assets, the lines below won't work as the files themselves will 404, they are just an example of use.
         // this.load.image('background','assets/turntable/background.jpg');
-        this.load.image('turntable','assets/turntable/turntable.png');
+        this.load.image('turntable',turntableImage);
         this.load.image('lottery','assets/turntable/start-button.png');
 
 game.stage.backgroundColor = '#272822';

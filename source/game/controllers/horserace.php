@@ -26,8 +26,6 @@ class Horserace extends Front_Controller
 
     public function start()
     {
-        $this->load->driver('cache', array('adapter' => 'file'));
-
         $config = $this->getConfig();
 
         $this->load->model(array('horserace_log_model', 'horserace_play_model'));

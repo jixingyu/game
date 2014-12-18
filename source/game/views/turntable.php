@@ -1,6 +1,7 @@
 <?php include('_header.php');?>
 <script type="text/javascript">
-var isLogin = <?php echo $isLogin;?>
+var isLogin = <?php echo $isLogin;?>;
+var turntableImage = '<?php echo $image;?>';
 </script>
 <script type="text/javascript" src="<?php echo base_url('assets/js/turntable.js');?>"></script>
 
