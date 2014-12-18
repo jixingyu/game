@@ -165,6 +165,9 @@ BasicGame.Game = function (game) {
     this.rnd;       //  the repeatable random number generator
     this.turnGroup;
     this.ready = true;
+    this.award = '';
+    this.gameoverText;
+    this.gameoverGroup;
 
     //  You can use any of these from any function within this State.
     //  But do consider them as being 'reserved words', i.e. don't create a property for your own game called "world" or you'll over-write the world reference.
@@ -188,6 +191,13 @@ BasicGame.Game.prototype = {
 
         var startButton = this.cache.getImage('lottery');
         game.add.button(this.turnGroup.x - startButton.width / 2, this.turnGroup.y - startButton.height / 2 + 17, 'lottery', this.lottery, this);
+
+        // gameover group
+        this.gameoverGroup = game.add.group();
+        this.gameoverGroup.visible = false;
+        var style = { font: "32px Arial", fill: "#ff0044", wordWrap: true, wordWrapWidth: "200px", align: "center" };
+
+        this.gameoverText = game.add.text(game.world.centerX, game.world.centerY, '', style, this.gameoverGroup);
     },
 
     update: function () {
@@ -198,6 +208,7 @@ BasicGame.Game.prototype = {
 
     lottery: function () {
         if (this.ready) {
+            this.gameoverGroup.visible = false;
             var _self = this;
             ajax({
                 url: '/turntable/lottery',
@@ -205,14 +216,15 @@ BasicGame.Game.prototype = {
                 onSuccess: function(data) {
                     var resp = JSON.parse(data);
                     if (resp.code == 0) {
-                        _self.turn(+resp.data.prize, +resp.data.angle, +resp.limit);
+                        _self.award = resp.data.award;
+                        _self.turn(+resp.data.angle);
                     }
                 },
             });
         }
     },
 
-    turn: function (prize, turnAngle, timeLimit) {
+    turn: function (turnAngle) {
         if(!isLogin && !!localStorage) {
             var today = new Date().toLocaleDateString();
             todayTimes = localStorage.getItem('todayTimes');
@@ -221,7 +233,7 @@ BasicGame.Game.prototype = {
                 todayTimes = 0;
             }
 
-            if (todayTimes >= timeLimit) {
+            if (todayTimes >= freeNum) {
                 alert('超过3次');
                 return;
             }
@@ -233,12 +245,22 @@ BasicGame.Game.prototype = {
 
         this.turnGroup.angle = 0;
         var circle = this.rnd.integerInRange(3, 8);
-        var duration = this.rnd.integerInRange(2000, 5000);
+        var duration = 1000;//this.rnd.integerInRange(2000, 5000);
         turnAngle = 360 * circle - turnAngle;
-        game.add.tween(this.turnGroup).to({angle: turnAngle}, duration, Phaser.Easing.Circular.Out, true);
-        var _self = this;
-        setTimeout(function(){_self.ready=true;}, duration);
-    }
+        var tw = game.add.tween(this.turnGroup).to({angle: turnAngle}, duration, Phaser.Easing.Circular.Out, true);
+        tw.onComplete.add(this.endlottery, this);
+    },
+
+    endlottery: function () {
+        this.ready = true;
+        if (this.award == '') {
+            var awardText = '很遗憾，未中奖';
+        } else {
+            var awardText = '恭喜，中了' + this.award + '！';
+        }
+        this.gameoverText.setText(awardText);
+        this.gameoverGroup.visible = true;
+    },
 
     // quitGame: function (pointer) {
 

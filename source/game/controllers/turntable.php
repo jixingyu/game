@@ -22,6 +22,7 @@ class Turntable extends Front_Controller
             'title' => '转盘',
             'image' => $config['image'],
             'isLogin' => $this->uid ? 1 : 0,
+            'freeNum' => $config['free_num'],
         );
 
         $this->load->view('turntable', $data);
@@ -37,6 +38,7 @@ class Turntable extends Front_Controller
         $this->load->model(array('turntable_log_model', 'turntable_play_model'));
 
         $isRandom = 1;
+        $award = '';
         $prize = false;
         $prizeArr = array(1,2,3,4,5,6,7,8);
 
@@ -94,6 +96,9 @@ class Turntable extends Front_Controller
                         $isRandom = 0;
                         if (is_numeric($config['awards'][$key])) {
                             $points += $config['awards'][$key];
+                            $award = $config['awards'][$key] . '积分';
+                        } else {
+                            $award = $config['awards'][$key];
                         }
                         break;
                     }
@@ -118,6 +123,9 @@ class Turntable extends Front_Controller
                         $playData['prize_num'][$key]++;
                         if (is_numeric($config['awards'][$key])) {
                             $points += $config['awards'][$key];
+                            $award = $config['awards'][$key] . '积分';
+                        } else {
+                            $award = $config['awards'][$key];
                         }
                         break;
                     }
@@ -153,7 +161,7 @@ class Turntable extends Front_Controller
         $angle = 0;
         foreach (array(1,2,0,3,4,0,5,6,0,7,8,0) as $value) {
             if ($prize == $value) {
-                $angle += mt_rand(1, $config['angle'][$value] - 1);
+                $angle += mt_rand(5, $config['angle'][$value] - 5);
                 break;
             } else {
                 $angle += $config['angle'][$value];
@@ -162,14 +170,14 @@ class Turntable extends Front_Controller
 
         // 0：谢谢参与
     	$this->response(array(
-    		'prize' => $prize,
+    		'award' => $award,
             'angle' => $angle,
-            'limit' => $config['free_num'],
 		));
     }
 
     private function guestLottery($config)
     {
+        $award = '';
         $prize = false;
         $rand = mt_rand(1, 1000);
         $probArr = $config['prob'];
@@ -178,6 +186,11 @@ class Turntable extends Front_Controller
             $value = $value * 10;
             if ($rand > $luckRange && $rand <= $luckRange + $value) {
                 $prize = $key;
+                if (is_numeric($config['awards'][$key])) {
+                    $award = $config['awards'][$key] . '积分';
+                } else {
+                    $award = $config['awards'][$key];
+                }
                 break;
             }
             $luckRange += $value;
@@ -185,15 +198,18 @@ class Turntable extends Front_Controller
         $prize = $prize ?: 0;
 
         $angle = 0;
-        for ($i = 0; $i < $prize; $i++) {
-            $angle += $config['angle'][$i];
+        foreach (array(1,2,0,3,4,0,5,6,0,7,8,0) as $value) {
+            if ($prize == $value) {
+                $angle += mt_rand(5, $config['angle'][$value] - 5);
+                break;
+            } else {
+                $angle += $config['angle'][$value];
+            }
         }
-        $angle += mt_rand(1, $config['angle'][$i] - 1);
         // 0：谢谢参与 1：一等奖，2：二等奖，3：鼓励奖
         $this->response(array(
-            'prize' => $prize,
+            'award' => $award,
             'angle' => $angle,
-            'limit' => $config['free_num'],
         ));
     }
 

@@ -34,10 +34,10 @@ class Horserace extends Front_Controller
         $rank = array(1,2,3,4,5,6,7,8);
         $rankPoints = array();
         foreach ($playRank as $rankK) {
-            $tmp = intval($this->input->get('rank' . $rankK));
+            $tmp = intval($this->input->post('rank' . $rankK));
             if ($tmp) {
                 $rankList[$rankK] = $tmp;
-                $rankPoints[$rankK] = intval($this->input->get('rankPoints' . $rankK));
+                $rankPoints[$rankK] = intval($this->input->post('rankPoints' . $rankK));
             }
         }
         if (empty($rankList)) {

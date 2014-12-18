@@ -87,107 +87,115 @@ BasicGame.Boot.prototype = {
 
 };
 
-
-
 BasicGame.Preloader = function (game) {
     this.preloadBar = null;
-
-    this.ready = false;
-
 };
 
 BasicGame.Preloader.prototype = {
 
     preload: function () {
-
+        // game.stage.backgroundColor = '#272822';
         this.preloadBar = this.add.sprite(game.width/2, game.height/2, 'preloaderBar');
         this.preloadBar.anchor.setTo(0.5,0.5);
-
         this.load.setPreloadSprite(this.preloadBar);
 
-        //  Here we load the rest of the assets our game needs.
-        //  As this is just a Project Template I've not provided these assets, the lines below won't work as the files themselves will 404, they are just an example of use.
-        // this.load.image('background','assets/turntable/background.jpg');
-        this.load.image('turntable','assets/turntable/turntable.png');
-        this.load.image('lottery','assets/turntable/start-button.png');
+        // this.load.image('turntable','assets/turntable/turntable.png');
+        // this.load.image('lottery','assets/turntable/start-button.png');
 
-game.stage.backgroundColor = '#272822';
 
-        this.load.audio('hit_ground_sound', 'assets/turntable/ouch.wav');
+        // this.load.audio('hit_ground_sound', 'assets/turntable/ouch.wav');
 
     },
 
     create: function () {
-
-        //  Once the load has finished we disable the crop because we're going to sit in the update loop for a short while as the music decodes
         this.preloadBar.cropEnabled = false;
+        this.state.start('MainMenu');
+    },
+};
+
+
+rank1=8;
+rankPoints1=1*chip;
+rank2 = rank3 = 0;
+
+BasicGame.MainMenu = function (game) {
+
+    this.music = null;
+    this.playButton = null;
+
+};
+
+BasicGame.MainMenu.prototype = {
+
+    create: function () {
+        this.startGame();
+        // this.add.sprite(0, 0, 'titlepage');
+
+        // this.playButton = this.add.button(400, 600, 'playButton', this.startGame, this, 'buttonOver', 'buttonOut', 'buttonOver');
 
     },
 
     update: function () {
 
-        //  You don't actually need to do this, but I find it gives a much smoother game experience.
-        //  Basically it will wait for our audio file to be decoded before proceeding to the MainMenu.
-        //  You can jump right into the menu if you want and still play the music, but you'll have a few
-        //  seconds of delay while the mp3 decodes - so if you need your music to be in-sync with your menu
-        //  it's best to wait for it to decode here first, then carry on.
-        
-        //  If you don't have any music in your game then put the game.state.start line into the create function and delete
-        //  the update function completely.
-        
-        if (this.cache.isSoundDecoded('hit_ground_sound') && this.ready == false)
-        {
-            this.ready = true;
-            this.state.start('Game');
+        //  Do some nice funky main menu effect here
+
+    },
+
+    startGame: function () {
+
+        //  Ok, the Play Button has been clicked or touched, so let's stop the music (otherwise it'll carry on playing)
+        // this.music.stop();
+        myChips = {};
+        if (rank1) {
+            myChips.rank1 = rank1;
+            myChips.rankPoints1 = rankPoints1;
         }
+        if (rank2) {
+            myChips.rank2 = rank2;
+            myChips.rankPoints2 = rankPoints2;
+        }
+        if (rank3) {
+            myChips.rank3 = rank3;
+            myChips.rankPoints3 = rankPoints3;
+        }
+        var _self = this;
+        ajax({
+            url: '/horserace/start',
+            data: myChips,
+            onSuccess: function(data) {
+                var resp = JSON.parse(data);
+                if (resp.code == 0) {
+                    //  And start the actual game
+                    _self.state.start('Game', true, false, resp.data.rank);
+                }
+            },
+        });
 
     }
 
 };
 
+
 BasicGame.Game = function (game) {
-
-    //  When a State is added to Phaser it automatically has the following properties set on it, even if they already exist:
-
-    this.add;       //  used to add sprites, text, groups, etc
-    this.camera;    //  a reference to the game camera
-    this.cache;     //  the game cache
-    this.input;     //  the global input manager (you can access this.input.keyboard, this.input.mouse, as well from it)
-    this.load;      //  for preloading assets
-    this.math;      //  lots of useful common math operations
-    this.sound;     //  the sound manager - add a sound, play one, set-up markers, etc
-    this.stage;     //  the game stage
-    this.time;      //  the clock
-    this.tweens;    //  the tween manager
-    this.world;     //  the game world
-    this.particles; //  the particle manager
-    this.physics;   //  the physics manager
-    this.rnd;       //  the repeatable random number generator
-    this.turnGroup;
-    this.ready = true;
-
-    //  You can use any of these from any function within this State.
-    //  But do consider them as being 'reserved words', i.e. don't create a property for your own game called "world" or you'll over-write the world reference.
-
+    this.ranklist;
 };
 
 BasicGame.Game.prototype = {
 
+    init: function (ranklist) {
+        this.ranklist = ranklist;
+        // if (rank1 && ranklist[0] == rank1) {
+        //     console.log('win');
+        // } else {
+        //     console.log('lose');
+        // }
+    },
+
     create: function () {
-
-        // this.add.sprite(0, 0, 'background');
-
-        this.turnGroup = game.add.group();
-        var turntable = this.cache.getImage('turntable');
-        turntableX = -turntable.width / 2;
-        turntableY = -turntable.height / 2;
-        this.turnGroup.create(turntableX, turntableY, 'turntable');
-
-        this.turnGroup.x = game.world.centerX;
-        this.turnGroup.y = 50 - turntableY;
-
-        var startButton = this.cache.getImage('lottery');
-        game.add.button(this.turnGroup.x - startButton.width / 2, this.turnGroup.y - startButton.height / 2 + 17, 'lottery', this.lottery, this);
+        for (i = 0; i < 8; i++) {
+            id = this.ranklist[i];
+            console.log(id);
+        }
     },
 
     update: function () {
@@ -196,66 +204,13 @@ BasicGame.Game.prototype = {
 
     },
 
-    lottery: function () {
-        if (this.ready) {
-            var _self = this;
-            ajax({
-                url: '/turntable/lottery',
-                data: {},
-                onSuccess: function(data) {
-                    var resp = JSON.parse(data);
-                    if (resp.code == 0) {
-                        _self.turn(+resp.data.prize, +resp.data.angle, +resp.limit);
-                    }
-                },
-            });
-        }
-    },
-
-    turn: function (prize, turnAngle, timeLimit) {
-        if(!isLogin && !!localStorage) {
-            var today = new Date().toLocaleDateString();
-            todayTimes = localStorage.getItem('todayTimes');
-            lastDay = localStorage.getItem('lastDay');
-            if (!lastDay || today != lastDay) {
-                todayTimes = 0;
-            }
-
-            if (todayTimes >= timeLimit) {
-                alert('超过3次');
-                return;
-            }
-
-            localStorage.setItem('todayTimes', ++todayTimes);
-            localStorage.setItem('lastDay', today);
-        }
-        this.ready = false;
-
-        this.turnGroup.angle = 0;
-        var circle = this.rnd.integerInRange(3, 8);
-        var duration = this.rnd.integerInRange(2000, 5000);
-        turnAngle = 360 * circle - turnAngle;
-        game.add.tween(this.turnGroup).to({angle: turnAngle}, duration, Phaser.Easing.Circular.Out, true);
-        var _self = this;
-        setTimeout(function(){_self.ready=true;}, duration);
-    }
-
-    // quitGame: function (pointer) {
-
-    //     //  Here you should destroy anything you no longer need.
-    //     //  Stop music, delete sprites, purge caches, free resources, all that good stuff.
-
-    //     //  Then let's go back to the main menu.
-    //     this.state.start('MainMenu');
-
-    // }
-
 };
 
 //  Add the States your game has.
 //  You don't have to do this in the html, it could be done in your Boot state too, but for simplicity I'll keep it here.
 game.state.add('Boot', BasicGame.Boot);
 game.state.add('Preloader', BasicGame.Preloader);
+game.state.add('MainMenu',BasicGame.MainMenu);
 game.state.add('Game', BasicGame.Game);
 
 //  Now start the Boot state.

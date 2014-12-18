@@ -33,6 +33,9 @@ class Turntable extends Admin_Controller
             $angleTotal = 0;
             foreach ($data['prizeArr'] as $key) {
                 $angleTotal += $post['angle' . $key];
+                if ($post['angle' . $key] < 10) {
+                    $data['error'] = '角度设定出错，角度不能小于10度';
+                }
             }
             if ($angleTotal >= 360) {
                 $data['error'] = '角度设定出错';
@@ -76,7 +79,7 @@ class Turntable extends Admin_Controller
                         $upConfig = array(
                             'file_name'     => 'turntable' . rand(1,100) . '.' . pathinfo($_FILES['upImage']['name'], PATHINFO_EXTENSION),
                             'upload_path'   => FCPATH . $this->config->item('turntable_image_path'),
-                            'allowed_types' => 'png',
+                            'allowed_types' => 'png|jpg',
                             'max_size'      => $this->config->item('size_limit'),
                             'overwrite'     => true,
                         );
