@@ -36,8 +36,6 @@ class Turntable extends Front_Controller
         }
         $this->load->model(array('turntable_log_model', 'turntable_play_model'));
 
-        $this->cacheid = 'turntable' . $this->uid;
-
         $isRandom = 1;
         $prize = false;
         $prizeArr = array(1,2,3,4,5,6,7,8);
@@ -64,13 +62,13 @@ class Turntable extends Front_Controller
                 $playData['today_num'] = 0;
                 foreach ($prizeArr as $key) {
                     $playData['prize_num'][$key] = 0;
-                    $playData['range'][$key]++;
+                    $playData['range'][$key] = 1;
                 }
             } else {
                 $playData['range'] = json_decode($playData['range'], true);
                 $playData['prize_num'] = json_decode($playData['prize_num'], true);
                 foreach ($prizeArr as $key) {
-                    $playData['range'][$key]++;
+                    $playData['range'][$key] = $playData['range'][$key] + 1;
                 }
             }
             $first = false;

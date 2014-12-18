@@ -1,4 +1,4 @@
-var game = new Phaser.Game(600, 900, Phaser.AUTO, 'game');
+var game = new Phaser.Game(540, 960, Phaser.AUTO, 'game');
 
 BasicGame = {
 
@@ -107,11 +107,11 @@ BasicGame.Preloader.prototype = {
 
         //  Here we load the rest of the assets our game needs.
         //  As this is just a Project Template I've not provided these assets, the lines below won't work as the files themselves will 404, they are just an example of use.
-        this.load.image('background','assets/turntable/background.jpg');
+        // this.load.image('background','assets/turntable/background.jpg');
         this.load.image('turntable','assets/turntable/turntable.png');
         this.load.image('lottery','assets/turntable/start-button.png');
 
-
+game.stage.backgroundColor = '#272822';
 
         this.load.audio('hit_ground_sound', 'assets/turntable/ouch.wav');
 
@@ -175,7 +175,7 @@ BasicGame.Game.prototype = {
 
     create: function () {
 
-        this.add.sprite(0, 0, 'background');
+        // this.add.sprite(0, 0, 'background');
 
         this.turnGroup = game.add.group();
         var turntable = this.cache.getImage('turntable');
@@ -232,8 +232,8 @@ BasicGame.Game.prototype = {
         this.ready = false;
 
         this.turnGroup.angle = 0;
-        var circle = 3 + (Math.random() * 5 >>> 0);
-        var duration = 2000 + (Math.random() * 3000 >>> 0);
+        var circle = this.rnd.integerInRange(3, 8);
+        var duration = this.rnd.integerInRange(2000, 5000);
         turnAngle = 360 * circle - turnAngle;
         game.add.tween(this.turnGroup).to({angle: turnAngle}, duration, Phaser.Easing.Circular.Out, true);
         var _self = this;
