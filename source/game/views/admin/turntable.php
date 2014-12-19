@@ -59,7 +59,7 @@
                                     <tr>
                                         <td><?php echo $prize;?>等奖</td>
                                         <td><input type="text" name="prob<?php echo $prize;?>" value="<?php echo $config['prob'][$prize];?>">%</td>
-                                        <td><input type="text" name="awards<?php echo $prize;?>" value="<?php echo $config['awards'][$prize];?>"></td>
+                                        <td><input type="text" style="width:100px" name="awards<?php echo $prize;?>" value="<?php echo $config['awards'][$prize];?>"></td>
                                         <td><input type="text" name="range<?php echo $prize;?>" value="<?php echo $config['range'][$prize];?>"></td>
                                         <td><input type="text" name="max<?php echo $prize;?>" value="<?php echo $config['max'][$prize];?>"></td>
                                         <td><input type="text" name="angle<?php echo $prize;?>" value="<?php echo $config['angle'][$prize];?>"></td>

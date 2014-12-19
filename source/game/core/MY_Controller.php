@@ -28,6 +28,9 @@ class Front_Controller extends Base_Controller
         parent::__construct();
         $this->load->driver('cache', array('adapter' => 'file'));
         $this->uid = 1;//TODO
+        if (!$this->uid && $this->checkLogin) {
+            // 跳转到登录页面
+        }
         //load libraries
         // $this->load->library(array('session','user_lib'));
         // $this->load->model('category_model');

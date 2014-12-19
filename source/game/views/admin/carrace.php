@@ -2,10 +2,10 @@
 
 <div class="row">
     <div class="col-lg-8">
-        <h1 class="page-header">赛马</h1>
+        <h1 class="page-header">赛车</h1>
 
         <div class="text-num">
-            <form role="form" action="/admin/horserace" method="post" enctype="multipart/form-data">
+            <form role="form" action="/admin/carrace" method="post" enctype="multipart/form-data">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         基础设定

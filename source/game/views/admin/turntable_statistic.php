@@ -43,7 +43,7 @@
                             <thead>
                                 <tr>
                                     <th>UID</th>
-                                    <th>消耗积分</th>
+                                    <th>奖品</th>
                                     <th>摇奖结果</th>
                                     <th>时间</th>
                                 </tr>
@@ -52,7 +52,7 @@
                                 <?php foreach ($logs as $key => $row) :?>
                                 <tr>
                                     <td><?php echo $row['uid'];?></td>
-                                    <td><?php echo $row['consume_points'];?></td>
+                                    <td><?php echo $row['award'];?></td>
                                     <td class="center"><?php echo $row['prize'] ? $row['prize'] . '等奖' : '未中奖'; ?></td>
                                     <td class="center"><?php echo date('Y-m-d H:i', $row['create_time']);?></td>
                                 </tr>

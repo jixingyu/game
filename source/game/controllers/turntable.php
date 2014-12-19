@@ -79,11 +79,10 @@ class Turntable extends Front_Controller
         $playData['today_num']++;
         if ($playData['today_num'] >= $config['free_num']) {
             //TODO 消耗积分
-            $consumePoints = $config['consume_points'];
+            $points = -$config['consume_points'];
         } else {
-            $consumePoints = 0;
+            $points = 0;
         }
-        $points = -$consumePoints;
 
         // 每百次中二等奖 , 每千次中一等奖
         if (!$first) {
@@ -140,7 +139,7 @@ class Turntable extends Front_Controller
         $this->turntable_log_model->insert(array(
             'uid' => $this->uid,
             'prize' => $prize,
-            'consume_points' => $consumePoints,
+            'award' => $award,
             'create_time' => $currentTime,
             'is_random' => $isRandom,
         ));
