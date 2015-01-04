@@ -1,4 +1,4 @@
-var game = new Phaser.Game(540, 960, Phaser.AUTO, 'game');
+var game = new Phaser.Game(720, 1280, Phaser.AUTO, 'game');
 
 BasicGame = {
 

@@ -1,4 +1,4 @@
-var game = new Phaser.Game(540, 960, Phaser.AUTO, 'game');
+var game = new Phaser.Game(720, 1280, Phaser.AUTO, 'game');
 
 BasicGame = {
 
@@ -111,7 +111,7 @@ BasicGame.Preloader.prototype = {
         this.load.image('turntable',turntableImage);
         this.load.image('lottery','assets/turntable/start-button.png');
 
-game.stage.backgroundColor = '#272822';
+        game.stage.backgroundColor = '#000000';
 
         this.load.audio('hit_ground_sound', 'assets/turntable/ouch.wav');
 
@@ -187,7 +187,7 @@ BasicGame.Game.prototype = {
         this.turnGroup.create(turntableX, turntableY, 'turntable');
 
         this.turnGroup.x = game.world.centerX;
-        this.turnGroup.y = 50 - turntableY;
+        this.turnGroup.y = 100 - turntableY;
 
         var startButton = this.cache.getImage('lottery');
         game.add.button(this.turnGroup.x - startButton.width / 2, this.turnGroup.y - startButton.height / 2 + 17, 'lottery', this.lottery, this);
@@ -195,9 +195,10 @@ BasicGame.Game.prototype = {
         // gameover group
         this.gameoverGroup = game.add.group();
         this.gameoverGroup.visible = false;
-        var style = { font: "32px Arial", fill: "#ff0044", wordWrap: true, wordWrapWidth: "200px", align: "center" };
+        var style = { font: "32px Arial", fill: "#ffffff", wordWrap: true, wordWrapWidth: "200px", align: "center" };
 
-        this.gameoverText = game.add.text(game.world.centerX, game.world.centerY, '', style, this.gameoverGroup);
+        this.gameoverText = game.add.text(game.world.centerX, 50, '', style, this.gameoverGroup);
+        this.gameoverText.anchor.setTo(0.5);
     },
 
     update: function () {

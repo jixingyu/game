@@ -1,4 +1,5 @@
-var game = new Phaser.Game(540, 960, Phaser.AUTO, 'game');
+var game = new Phaser.Game(720, 1280, Phaser.AUTO, 'game');
+var horseNum = 6;
 
 BasicGame = {
 
@@ -100,7 +101,8 @@ BasicGame.Preloader.prototype = {
         this.load.setPreloadSprite(this.preloadBar);
 
         // this.load.image('turntable','assets/turntable/turntable.png');
-        // this.load.image('lottery','assets/turntable/start-button.png');
+        game.load.atlas('horse', 'assets/horserace/horse.png', 'assets/horserace/horse.json');
+        game.load.spritesheet('balls', 'assets/horserace/balls.png', 17, 17);
 
 
         // this.load.audio('hit_ground_sound', 'assets/turntable/ouch.wav');
@@ -114,7 +116,7 @@ BasicGame.Preloader.prototype = {
 };
 
 
-rank1=8;
+rank1=horseNum;
 rankPoints1=1*chip;
 rank2 = rank3 = 0;
 
@@ -178,12 +180,14 @@ BasicGame.MainMenu.prototype = {
 
 BasicGame.Game = function (game) {
     this.ranklist;
+    this.player = [];
+    this.balls = [];
 };
 
 BasicGame.Game.prototype = {
 
     init: function (ranklist) {
-        this.ranklist = ranklist;
+        this.ranklist = [5,4,3,2,1,6];//ranklist;
         // if (rank1 && ranklist[0] == rank1) {
         //     console.log('win');
         // } else {
@@ -192,9 +196,33 @@ BasicGame.Game.prototype = {
     },
 
     create: function () {
-        for (i = 0; i < 8; i++) {
-            id = this.ranklist[i];
-            console.log(id);
+        var y = 200;
+        var by = 10;
+        for (i = 0; i < horseNum; i++) {
+            id = i;//this.ranklist[i] - 1;
+            this.balls[id] = game.add.sprite(10, by, 'balls', id);
+            this.player[id] = game.add.sprite(10, y, 'horse');
+            by += 20;
+            y += 120;
+            this.player[id].animations.add('swim', Phaser.Animation.generateFrameNames('greenJellyfish', 0, 39, '', 4), 30, true);
+            this.player[id].animations.play('swim');
+        }
+        this.runStart();
+    },
+
+    runStart: function () {
+        var duration = this.rndDuration(5000, 9000);
+        var sectionDistance = 500 / 4;//TODO
+        var section = [];
+        tweenLimit = 4;
+        for (i = 0; i < 5; i++) {
+            section[i] = this.rndSection(duration[i], 500, tweenLimit);
+        }
+        for (i = 0; i < 5; i++) {
+            var ttween = game.add.tween(this.balls[i]).to({ x: sectionDistance }, section[i][0], Phaser.Easing.Linear.None, true);
+            for (tweenI = 1; tweenI < tweenLimit; tweenI++) {
+                ttween.to({ x: sectionDistance * 2 }, section[i][tweenI], Phaser.Easing.Linear.None, true);
+            }
         }
     },
 
@@ -202,6 +230,56 @@ BasicGame.Game.prototype = {
 
         //  Honestly, just about anything could go here. It's YOUR game after all. Eat your heart out!
 
+    },
+
+    rndDuration: function (min, max) {
+        var r = this.rnd.integerInRange(min, max);
+        var array = [];
+        for (var i = 0; i < horseNum; i++) {
+            var flag = 0;
+            do {
+                for (var j = 0;j < array.length; j++) {
+                    if (array[j] == r) {
+                        flag = 1;
+                        break;
+                    }
+                }
+                if (!flag) {
+                    array[array.length] = r;
+                } else {
+                    r = this.rnd.integerInRange(min, max);
+                }
+            } while (!flag);
+        }
+        array.sort(function(x,y){return x-y}); 
+        return array;
+    },
+
+    rndSection: function(duration, distance, limit) {
+        var t = duration / 4;
+        var intT = parseInt(t);
+        var minT = parseInt(t * 0.7);
+        var maxT = parseInt(t * 1.3);
+        var tArray = [];
+        var avg = distance / duration;
+
+        for (k = 0; k < limit; k++) {
+            if (k == limit - 1) {
+                tArray[tArray.length] = duration - eval(tArray.join('+'));
+            } else if (k == 3) {
+                var sum = eval(tArray.join('+'));
+                if (sum / tArray.length > avg) {
+                    tArray[tArray.length] = this.rnd.integerInRange(minT, intT);
+                } else if (sum / tArray.length < avg) {
+                    tArray[tArray.length] = this.rnd.integerInRange(intT, maxT);
+                } else {
+                    tArray[tArray.length] = this.rnd.integerInRange(minT, maxT);
+                }
+            } else {
+                tArray[tArray.length] = this.rnd.integerInRange(minT, maxT);
+            }
+        }
+        return tArray;
     },
 
 };

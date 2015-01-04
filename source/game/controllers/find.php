@@ -12,9 +12,4 @@ class Find extends Front_Controller
     {
         parent::__construct();
     }
-
-    public function index()
-    {
-        
-    }
 }
