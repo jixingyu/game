@@ -51,7 +51,8 @@ BasicGame.Boot.prototype = {
     preload: function () {
 
         //  Here we load the assets required for our preloader (in this case a background and a loading bar)
-        this.load.image('preloaderBar', 'assets/loading.gif');
+        this.load.image('preloaderBar', 'assets/preloader.png');
+        this.load.image('preloaderbar-bottom', 'assets/preloader-bottom.png');
 
     },
 
@@ -99,9 +100,9 @@ BasicGame.Preloader = function (game) {
 BasicGame.Preloader.prototype = {
 
     preload: function () {
-
-        this.preloadBar = this.add.sprite(game.width/2, game.height/2, 'preloaderBar');
-        this.preloadBar.anchor.setTo(0.5,0.5);
+        this.add.sprite(100, 500, 'preloaderbar-bottom');
+        this.preloadBar = this.add.sprite(106.5, 513.5, 'preloaderBar');
+        // this.preloadBar.anchor.setTo(0.5,0.5);
 
         this.load.setPreloadSprite(this.preloadBar);
 
@@ -109,11 +110,13 @@ BasicGame.Preloader.prototype = {
         //  As this is just a Project Template I've not provided these assets, the lines below won't work as the files themselves will 404, they are just an example of use.
         // this.load.image('background','assets/turntable/background.jpg');
         this.load.image('turntable',turntableImage);
-        this.load.image('lottery','assets/turntable/start-button.png');
+        this.load.image('lottery','assets/turntable/start-button1.png');
+        this.load.image('press','assets/turntable/press-button.png');
+        this.load.image('mid-pannel','assets/turntable/mid.png');
 
         game.stage.backgroundColor = '#000000';
 
-        this.load.audio('hit_ground_sound', 'assets/turntable/ouch.wav');
+        // this.load.audio('hit_ground_sound', 'assets/turntable/ouch.wav');
 
     },
 
@@ -135,7 +138,8 @@ BasicGame.Preloader.prototype = {
         //  If you don't have any music in your game then put the game.state.start line into the create function and delete
         //  the update function completely.
         
-        if (this.cache.isSoundDecoded('hit_ground_sound') && this.ready == false)
+        //if (this.cache.isSoundDecoded('hit_ground_sound') && this.ready == false)
+        if (this.ready == false)
         {
             this.ready = true;
             this.state.start('Game');
@@ -163,7 +167,6 @@ BasicGame.Game = function (game) {
     this.particles; //  the particle manager
     this.physics;   //  the physics manager
     this.rnd;       //  the repeatable random number generator
-    this.turnGroup;
     this.ready = true;
     this.award = '';
     this.gameoverText;
@@ -180,17 +183,17 @@ BasicGame.Game.prototype = {
 
         // this.add.sprite(0, 0, 'background');
 
-        this.turnGroup = game.add.group();
-        var turntable = this.cache.getImage('turntable');
-        turntableX = -turntable.width / 2;
-        turntableY = -turntable.height / 2;
-        this.turnGroup.create(turntableX, turntableY, 'turntable');
+        var turnGroup = game.add.group();
+        var turntableCache = this.cache.getImage('turntable');
+        circleX = game.width / 2;
+        circleY = 100 + turntableCache.height / 2;
+        this.turntable = turnGroup.create(circleX, circleY, 'turntable');
+        this.turntable.anchor.setTo(0.5,0.5);
 
-        this.turnGroup.x = game.world.centerX;
-        this.turnGroup.y = 100 - turntableY;
+        var midPannel = turnGroup.create(circleX - 184, circleY - 247, 'mid-pannel');
 
-        var startButton = this.cache.getImage('lottery');
-        game.add.button(this.turnGroup.x - startButton.width / 2, this.turnGroup.y - startButton.height / 2 + 17, 'lottery', this.lottery, this);
+        var lotteryButton = game.add.button(circleX, circleY, 'lottery', this.lottery, this);
+        lotteryButton.anchor.setTo(0.5,0.5);
 
         // gameover group
         this.gameoverGroup = game.add.group();
@@ -244,11 +247,11 @@ BasicGame.Game.prototype = {
         }
         this.ready = false;
 
-        this.turnGroup.angle = 0;
+        this.turntable.angle = 0;
         var circle = this.rnd.integerInRange(3, 8);
         var duration = 1000;//this.rnd.integerInRange(2000, 5000);
         turnAngle = 360 * circle - turnAngle;
-        var tw = game.add.tween(this.turnGroup).to({angle: turnAngle}, duration, Phaser.Easing.Circular.Out, true);
+        var tw = game.add.tween(this.turntable).to({angle: turnAngle}, duration, Phaser.Easing.Circular.Out, true);
         tw.onComplete.add(this.endlottery, this);
     },
 
