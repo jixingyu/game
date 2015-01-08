@@ -18,6 +18,10 @@
                             <input type="text" name="consume_points" value="<?php echo $config['consume_points'];?>">
                             积分
                         </p>
+                        <p>
+                            游戏介绍：
+                            <textarea class="form-control" name="description" rows="3"><?php echo $config['description'];?></textarea>
+                        </p>
                     </div>
                 </div>
 

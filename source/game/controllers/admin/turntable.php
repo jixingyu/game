@@ -23,6 +23,7 @@ class Turntable extends Admin_Controller
         foreach ($jsonKeyArr as $value) {
             $config[$value] = json_decode($config[$value], true);
         }
+        $config['image'] = site_url($config['image']);
         $data = array(
             'prizeArr' => array(1,2,3,4,5,6,7,8),
         	'config' => $config,

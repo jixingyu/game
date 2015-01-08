@@ -3,6 +3,7 @@
 var isLogin = <?php echo $isLogin;?>;
 var turntableImage = '<?php echo $image;?>';
 var freeNum = <?php echo $freeNum;?>;
+var desc = "<?php echo $desc;?>";
 </script>
 <script type="text/javascript" src="<?php echo base_url('assets/js/turntable.js');?>"></script>
 

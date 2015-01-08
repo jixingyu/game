@@ -25,10 +25,8 @@ BasicGame.Boot.prototype = {
 
         if (this.game.device.desktop)
         {
-            // this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-            // this.scale.setMinMax(480, 260, 1024, 768);
-this.scale.scaleMode = Phaser.ScaleManager.USER_SCALE;
-this.scale.setUserScale(1, 1, 0, 0);
+            this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+            this.scale.setMinMax(480, 260, 1024, 768);
 
             this.scale.pageAlignHorizontally = true;
             this.scale.pageAlignVertically = true;
@@ -201,10 +199,14 @@ BasicGame.Game.prototype = {
         // gameover group
         this.gameoverGroup = game.add.group();
         this.gameoverGroup.visible = false;
-        var style = { font: "32px Arial", fill: "#ffffff", wordWrap: true, wordWrapWidth: "200px", align: "center" };
+        var style = { font: "32px Arial", fill: "#ffffff", align: "center" };
 
         this.gameoverText = game.add.text(game.world.centerX, 50, '', style, this.gameoverGroup);
         this.gameoverText.anchor.setTo(0.5);
+
+        desc = desc.replace(/###/g,"\n");
+        var descStyle = { font: "32px Arial", fill: "#ffffff", align: "center" };
+        game.add.text(100, 800, desc, descStyle);
     },
 
     update: function () {
@@ -252,7 +254,7 @@ BasicGame.Game.prototype = {
 
         this.turntable.angle = 0;
         var circle = this.rnd.integerInRange(3, 8);
-        var duration = 1000;//this.rnd.integerInRange(2000, 5000);
+        var duration = this.rnd.integerInRange(2000, 3000);
         turnAngle = 360 * circle - turnAngle;
         var tw = game.add.tween(this.turntable).to({angle: turnAngle}, duration, Phaser.Easing.Circular.Out, true);
         tw.onComplete.add(this.endlottery, this);
