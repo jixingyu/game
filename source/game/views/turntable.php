@@ -9,5 +9,9 @@ var desc = "<?php echo $desc;?>";
 
 	<div id="game"></div>
 	<div id="orientation"></div>
+	<div id="desc" style="display:none;"><?php echo $desc;?></div>
 
+<script type="text/javascript">
+
+</script>
 <?php include('_footer.php');?>

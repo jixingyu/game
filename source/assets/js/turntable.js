@@ -177,7 +177,7 @@ BasicGame.Game = function (game) {
     //  But do consider them as being 'reserved words', i.e. don't create a property for your own game called "world" or you'll over-write the world reference.
 
 };
-
+var descPanel;
 BasicGame.Game.prototype = {
 
     create: function () {
@@ -201,12 +201,16 @@ BasicGame.Game.prototype = {
         this.gameoverGroup.visible = false;
         var style = { font: "32px Arial", fill: "#ffffff", align: "center" };
 
-        this.gameoverText = game.add.text(game.world.centerX, 50, '', style, this.gameoverGroup);
+        this.gameoverText = game.add.text(game.world.centerX, 40, '', style, this.gameoverGroup);
         this.gameoverText.anchor.setTo(0.5);
 
-        desc = desc.replace(/###/g,"\n");
-        var descStyle = { font: "32px Arial", fill: "#ffffff", align: "center" };
-        game.add.text(100, 800, desc, descStyle);
+        // descPanel = new Phaser.Rectangle(0, 800, 680, 300);//game.debug.geom(descPanel,'#0fffff');
+        // desc = "\n" + desc.replace(/###/g,"\n");
+        // var descStyle = { font: "32px Arial", fill: "#ffffff", align: "center" };
+        // descText = game.add.text(20, 800, desc, descStyle);
+        // descText.inputEnabled = true;
+        // descText.input.enableDrag();
+        // descText.input.allowHorizontalDrag = false;
     },
 
     update: function () {
@@ -267,7 +271,7 @@ BasicGame.Game.prototype = {
         } else {
             var awardText = '恭喜，中了' + this.award + '！';
         }
-        this.gameoverText.setText(awardText);
+        this.gameoverText.setText("\n" + awardText);
         this.gameoverGroup.visible = true;
     },
 
