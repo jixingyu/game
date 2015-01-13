@@ -23,7 +23,7 @@ class Turntable extends Front_Controller
             'image' => $config['image'],
             'isLogin' => $this->uid ? 1 : 0,
             'freeNum' => $config['free_num'],
-            'desc' => str_replace(array("\r\n",'"'), array('###','\"'), $config['description']),
+            'desc' => $config['description'],//str_replace(array("\r\n",'"'), array('###','\"'), $config['description']),
         );
 
         $this->load->view('turntable', $data);

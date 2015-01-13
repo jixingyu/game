@@ -124,7 +124,7 @@ BasicGame.MainMenu = function (game) {
 
     this.music = null;
     this.playButton = null;
-
+    this.myChips = {};
 };
 
 BasicGame.MainMenu.prototype = {
@@ -147,23 +147,22 @@ BasicGame.MainMenu.prototype = {
 
         //  Ok, the Play Button has been clicked or touched, so let's stop the music (otherwise it'll carry on playing)
         // this.music.stop();
-        myChips = {};
         if (rank1) {
-            myChips.rank1 = rank1;
-            myChips.rankPoints1 = rankPoints1;
+            this.myChips.rank1 = rank1;
+            this.myChips.rankPoints1 = rankPoints1;
         }
         if (rank2) {
-            myChips.rank2 = rank2;
-            myChips.rankPoints2 = rankPoints2;
+            this.myChips.rank2 = rank2;
+            this.myChips.rankPoints2 = rankPoints2;
         }
         if (rank3) {
-            myChips.rank3 = rank3;
-            myChips.rankPoints3 = rankPoints3;
+            this.myChips.rank3 = rank3;
+            this.myChips.rankPoints3 = rankPoints3;
         }
         var _self = this;
         ajax({
             url: '/horserace/start',
-            data: myChips,
+            data: this.myChips,
             onSuccess: function(data) {
                 var resp = JSON.parse(data);
                 if (resp.code == 0) {
@@ -180,7 +179,7 @@ BasicGame.MainMenu.prototype = {
 
 BasicGame.Game = function (game) {
     this.ranklist;
-    this.player = [];
+    this.players = [];
     this.balls = [];
 };
 
@@ -196,34 +195,53 @@ BasicGame.Game.prototype = {
     },
 
     create: function () {
+        game.world.setBounds(0, 0, 1440, 1280);
+
         var y = 200;
         var by = 10;
         for (i = 0; i < horseNum; i++) {
             id = i;//this.ranklist[i] - 1;
             this.balls[id] = game.add.sprite(10, by, 'balls', id);
-            this.player[id] = game.add.sprite(10, y, 'horse');
+            this.players[id] = game.add.sprite(10, y, 'horse');
             by += 20;
             y += 120;
-            this.player[id].animations.add('swim', Phaser.Animation.generateFrameNames('greenJellyfish', 0, 39, '', 4), 30, true);
-            this.player[id].animations.play('swim');
+
+            this.balls[i].fixedToCamera = true;
+            this.balls[i].cameraOffset.x = 10;
+            this.balls[i].cameraOffset.y = by;
         }
         this.runStart();
     },
 
     runStart: function () {
         var duration = this.rndDuration(5000, 9000);
-        var sectionDistance = 500 / 4;//TODO
-        var section = [];
+
+        cameraMoveTime = duration[2];
+        // var baseDistance = 720 / cameraMoveTime;
+
+        var bSectionDistance = 300 / 4;//TODO
+        var pSectionDistance = 1000 / 4;
+        var btween = [];
+        var ptween = [];
         tweenLimit = 4;
         for (i = 0; i < 5; i++) {
-            section[i] = this.rndSection(duration[i], 500, tweenLimit);
+            section = this.rndSection(duration[i], 300, tweenLimit);
+            var btemptween = game.add.tween(this.balls[i].cameraOffset).to({ x: 10 + bSectionDistance }, section[0], Phaser.Easing.Linear.None);
+            var ptemptween = game.add.tween(this.players[i]).to({ x: pSectionDistance }, section[0], Phaser.Easing.Linear.None);
+            for (tweenI = 1; tweenI < tweenLimit; tweenI++) {
+                btemptween.to({ x: 10 + bSectionDistance * (tweenI + 1) }, section[tweenI], Phaser.Easing.Linear.None);
+                ptemptween.to({ x: pSectionDistance * (tweenI + 1) }, section[tweenI], Phaser.Easing.Linear.None);
+            }
+            btween[i] = btemptween;
+            ptween[i] = ptemptween;
         }
         for (i = 0; i < 5; i++) {
-            var ttween = game.add.tween(this.balls[i]).to({ x: sectionDistance }, section[i][0], Phaser.Easing.Linear.None, true);
-            for (tweenI = 1; tweenI < tweenLimit; tweenI++) {
-                ttween.to({ x: sectionDistance * 2 }, section[i][tweenI], Phaser.Easing.Linear.None, true);
-            }
+            this.players[i].animations.add('swim', Phaser.Animation.generateFrameNames('greenJellyfish', 0, 39, '', 4), 30, true);
+            this.players[i].animations.play('swim');
+            btween[i].start();
+            ptween[i].start();
         }
+        game.add.tween(game.camera).to({ x: 720 }, cameraMoveTime, Phaser.Easing.Linear.None, true);
     },
 
     update: function () {
@@ -258,8 +276,8 @@ BasicGame.Game.prototype = {
     rndSection: function(duration, distance, limit) {
         var t = duration / 4;
         var intT = parseInt(t);
-        var minT = parseInt(t * 0.7);
-        var maxT = parseInt(t * 1.3);
+        var minT = parseInt(t * 0.8);
+        var maxT = parseInt(t * 1.2);
         var tArray = [];
         var avg = distance / duration;
 

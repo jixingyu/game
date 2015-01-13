@@ -115,7 +115,7 @@ BasicGame.Preloader.prototype = {
         this.load.image('press','assets/turntable/press-button.png');
         this.load.image('mid-pannel','assets/turntable/mid.png');
 
-        game.stage.backgroundColor = '#000000';
+        // game.stage.backgroundColor = '#000000';
 
         // this.load.audio('hit_ground_sound', 'assets/turntable/ouch.wav');
 
@@ -177,7 +177,7 @@ BasicGame.Game = function (game) {
     //  But do consider them as being 'reserved words', i.e. don't create a property for your own game called "world" or you'll over-write the world reference.
 
 };
-var descPanel;
+// var descPanel;
 BasicGame.Game.prototype = {
 
     create: function () {
@@ -211,6 +211,21 @@ BasicGame.Game.prototype = {
         // descText.inputEnabled = true;
         // descText.input.enableDrag();
         // descText.input.allowHorizontalDrag = false;
+        if (window.innerWidth) {
+            winWidth = window.innerWidth;
+            winHeight = window.innerHeight;
+        } else if ((document.body) && (document.body.clientWidth)) {
+            winWidth = document.body.clientWidth;
+            winHeight = document.body.clientHeight;
+        } else if (document.documentElement && document.documentElement.clientHeight && document.documentElement.clientWidth) {
+            winHeight = document.documentElement.clientHeight;
+            winWidth = document.documentElement.clientWidth;
+        }
+        var descobj=document.getElementById("desc");
+        descobj.style.left=winWidth * 0.0278 + 'px';
+        descobj.style.top=winHeight * 0.7 + 'px';
+        descobj.style.height=winHeight * 0.2 + 'px';
+        descobj.style.display="block";
     },
 
     update: function () {
