@@ -101,12 +101,12 @@ BasicGame.Preloader.prototype = {
 
         for (i = 0; i < horseNum; i++) {
             hid = i + 1;
-            game.load.spritesheet('horse' + hid, 'assets/horserace/' + hid + '.png', 260, 120);
+            game.load.spritesheet('horse' + hid, 'assets/horserace/' + hid + '.png', 245, 120);
         }
 
         this.load.image('runway-begin','assets/horserace/begin.png');
         this.load.image('runway','assets/horserace/runway.png');
-        this.load.image('runway-end','assets/horserace/begin.png');
+        this.load.image('runway-end','assets/horserace/end.png');
         this.load.image('panel','assets/horserace/panel.png');
         this.load.spritesheet('stand','assets/horserace/stand.png', 175, 110);
 
@@ -193,7 +193,8 @@ BasicGame.Game = function (game) {
     this.panel;
     this.runwayLength = 2160;
     this.runLength = 1800;
-    this.startX = 13;
+    this.startX = 0;
+    this.horsePadding = 20;
 };
 
 BasicGame.Game.prototype = {
@@ -209,21 +210,26 @@ BasicGame.Game.prototype = {
 
     create: function () {
         game.world.setBounds(0, 0, this.runwayLength, 1280);
-        game.add.sprite(0, 0, 'runway-begin');
-        game.add.sprite(this.runwayLength - this.cache.getImage('runway-end').width, 0, 'runway-end');
-
-        var runway = game.add.tileSprite(
-            this.cache.getImage('runway-begin').width,
+        game.add.tileSprite(
             0,
-            this.runwayLength - this.cache.getImage('runway-begin').width - this.cache.getImage('runway-end').width,
+            0,
+            game.world.width,
             game.height,
             'runway'
         );
+        game.add.sprite(100 + this.startX, 217, 'runway-begin');
+        game.add.sprite(this.startX + this.runLength + 245 - this.horsePadding, 217, 'runway-end');
 
-        this.panel = game.add.sprite(0, 0, 'panel');
+        this.panel = game.add.group();
+        this.panel.create(0, 0, 'panel');
         this.panel.fixedToCamera = true;
         this.panel.cameraOffset.x = 0;
         this.panel.cameraOffset.y = 0;
+
+        var style = { font: "23px Arial", fill: "#000000" };
+        game.add.text(80, 100, '    ' + rank1 + '号马\n下注' + rankPoints1 + '积分', style, this.panel);
+        game.add.text(300, 100, '    ' + rank2 + '号马\n下注' + rankPoints2 + '积分', style, this.panel);
+        game.add.text(530, 100, '    ' + rank3 + '号马\n下注' + rankPoints3 + '积分', style, this.panel);
 
         var y = 188;
         // var by = 10;
@@ -237,7 +243,7 @@ BasicGame.Game.prototype = {
     },
 
     runStart: function () {
-        var duration = this.rndDuration(5000, 9000);
+        var duration = this.rndDuration(7000, 12000);
         // var duration = this.rndDuration(1000, 2000);
 
         cameraMoveTime = duration[0];
@@ -255,6 +261,7 @@ BasicGame.Game.prototype = {
                 // btemptween.to({ x: 10 + bSectionDistance * (tweenI + 1) }, section[tweenI], Phaser.Easing.Linear.None);
                 ptemptween.to({ x: this.startX + pSectionDistance * (tweenI + 1) }, section[tweenI], Phaser.Easing.Linear.None);
             }
+            ptemptween.to({ x: game.world.width }, 2000, Phaser.Easing.Linear.None);
             // btween[i] = btemptween;
             ptween[i] = ptemptween;
         }
@@ -262,7 +269,7 @@ BasicGame.Game.prototype = {
             this.players[i].animations.add('run');
             this.players[i].animations.play('run', 12, true);
             // btween[i].start();
-            ptween[i].onComplete.add(this.runStop, this);
+            // ptween[i].onComplete.add(this.runStop, this);
             ptween[i].start();
         }
         game.add.tween(game.camera).to({ x: 1440 }, cameraMoveTime, Phaser.Easing.Linear.None, true);
@@ -270,9 +277,9 @@ BasicGame.Game.prototype = {
 
     runStop: function () {
         for (i = 0; i < horseNum; i++) {
-            if (!this.players[i].runStop && this.players[i].x == this.startX + this.runLength) {
+            if (!this.players[i].stopRun && this.players[i].x == this.startX + this.runLength) {
                 this.players[i].loadTexture('stand', this.players[i].horseId - 1);
-                this.players[i].runStop = true;
+                this.players[i].stopRun = true;
             }
         }
     },

@@ -222,9 +222,10 @@ BasicGame.Game.prototype = {
             winWidth = document.documentElement.clientWidth;
         }
         var descobj=document.getElementById("desc");
-        descobj.style.left=winWidth * 0.0278 + 'px';
+        var infoobj=document.getElementById("info");
         descobj.style.top=winHeight * 0.7 + 'px';
-        descobj.style.height=winHeight * 0.2 + 'px';
+        descobj.style.height=winHeight * 0.3 + 'px';
+        infoobj.style.height=(winHeight * 0.3 - 30) + 'px';
         descobj.style.display="block";
     },
 
