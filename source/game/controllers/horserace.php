@@ -126,6 +126,7 @@ class Horserace extends Front_Controller
                     $isRandom = 0;
                     $updPlayData['cont_win_num'] = $playData['cont_win_num'] + 1;
                     $updPlayData['lose_num'] = 0;
+                    $updPlayData['lose_points'] = 0;
                     $points += $result['win'];
                     break;
                 }
@@ -177,12 +178,14 @@ class Horserace extends Front_Controller
         $len = count($rank);
         $tmp = array();
         $win = 0;
+        if ($rankK) {
+            $id = $rankList[$rankK];
+            unset($rank[$id - 1]);
+        }
 
         for ($i = 1; $i < $len; $i++) {
             $randomKey = array_rand($rank, 1);
             if ($i == $rankK) {
-                $id = $rankList[$i];
-                unset($rank[$id - 1]);
                 $tmp[] = $id;
                 $win += $rankPoints[$i] * ($config['multiple'][$i] + 2);
             } elseif (isset($rankList[$i]) && $rankList[$i] == $randomKey + 1 &&

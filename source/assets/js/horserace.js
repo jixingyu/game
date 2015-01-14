@@ -1,6 +1,5 @@
 var game = new Phaser.Game(720, 1280, Phaser.AUTO, 'game');
-var horseNum = 6;
-
+var horseNum = 8;
 BasicGame = {
 
     /* Here we've just got some global level vars that persist regardless of State swaps */
@@ -100,9 +99,16 @@ BasicGame.Preloader.prototype = {
         this.preloadBar.anchor.setTo(0.5,0.5);
         this.load.setPreloadSprite(this.preloadBar);
 
-        // this.load.image('turntable','assets/turntable/turntable.png');
-        game.load.atlas('horse', 'assets/horserace/horse.png', 'assets/horserace/horse.json');
-        game.load.spritesheet('balls', 'assets/horserace/balls.png', 17, 17);
+        for (i = 0; i < horseNum; i++) {
+            hid = i + 1;
+            game.load.spritesheet('horse' + hid, 'assets/horserace/' + hid + '.png', 260, 120);
+        }
+
+        this.load.image('runway-begin','assets/horserace/begin.png');
+        this.load.image('runway','assets/horserace/runway.png');
+        this.load.image('runway-end','assets/horserace/begin.png');
+        this.load.image('panel','assets/horserace/panel.png');
+        this.load.spritesheet('stand','assets/horserace/stand.png', 175, 110);
 
 
         // this.load.audio('hit_ground_sound', 'assets/turntable/ouch.wav');
@@ -116,9 +122,12 @@ BasicGame.Preloader.prototype = {
 };
 
 
-rank1=horseNum;
+rank1=1;
 rankPoints1=1*chip;
-rank2 = rank3 = 0;
+rank2=2;
+rankPoints2=1*chip;
+rank3=3;
+rankPoints3=1*chip;
 
 BasicGame.MainMenu = function (game) {
 
@@ -181,12 +190,16 @@ BasicGame.Game = function (game) {
     this.ranklist;
     this.players = [];
     this.balls = [];
+    this.panel;
+    this.runwayLength = 2160;
+    this.runLength = 1800;
+    this.startX = 13;
 };
 
 BasicGame.Game.prototype = {
 
     init: function (ranklist) {
-        this.ranklist = [5,4,3,2,1,6];//ranklist;
+        this.ranklist = ranklist;
         // if (rank1 && ranklist[0] == rank1) {
         //     console.log('win');
         // } else {
@@ -195,53 +208,73 @@ BasicGame.Game.prototype = {
     },
 
     create: function () {
-        game.world.setBounds(0, 0, 1440, 1280);
+        game.world.setBounds(0, 0, this.runwayLength, 1280);
+        game.add.sprite(0, 0, 'runway-begin');
+        game.add.sprite(this.runwayLength - this.cache.getImage('runway-end').width, 0, 'runway-end');
 
-        var y = 200;
-        var by = 10;
+        var runway = game.add.tileSprite(
+            this.cache.getImage('runway-begin').width,
+            0,
+            this.runwayLength - this.cache.getImage('runway-begin').width - this.cache.getImage('runway-end').width,
+            game.height,
+            'runway'
+        );
+
+        this.panel = game.add.sprite(0, 0, 'panel');
+        this.panel.fixedToCamera = true;
+        this.panel.cameraOffset.x = 0;
+        this.panel.cameraOffset.y = 0;
+
+        var y = 188;
+        // var by = 10;
         for (i = 0; i < horseNum; i++) {
-            id = i;//this.ranklist[i] - 1;
-            this.balls[id] = game.add.sprite(10, by, 'balls', id);
-            this.players[id] = game.add.sprite(10, y, 'horse');
-            by += 20;
-            y += 120;
-
-            this.balls[i].fixedToCamera = true;
-            this.balls[i].cameraOffset.x = 10;
-            this.balls[i].cameraOffset.y = by;
+            // this.balls[id] = game.add.sprite(10, by, 'balls', id);
+            this.players[i] = game.add.sprite(this.startX, y + 135 * (this.ranklist[i] - 1), 'horse' + this.ranklist[i], 0);
+            this.players[i].horseId = this.ranklist[i];
+            // by += 20;
         }
         this.runStart();
     },
 
     runStart: function () {
         var duration = this.rndDuration(5000, 9000);
+        // var duration = this.rndDuration(1000, 2000);
 
-        cameraMoveTime = duration[2];
-        // var baseDistance = 720 / cameraMoveTime;
+        cameraMoveTime = duration[0];
 
-        var bSectionDistance = 300 / 4;//TODO
-        var pSectionDistance = 1000 / 4;
-        var btween = [];
+        // var bSectionDistance = 300 / 4;//TODO
+        var pSectionDistance = this.runLength / 4;
+        // var btween = [];
         var ptween = [];
         tweenLimit = 4;
-        for (i = 0; i < 5; i++) {
-            section = this.rndSection(duration[i], 300, tweenLimit);
-            var btemptween = game.add.tween(this.balls[i].cameraOffset).to({ x: 10 + bSectionDistance }, section[0], Phaser.Easing.Linear.None);
-            var ptemptween = game.add.tween(this.players[i]).to({ x: pSectionDistance }, section[0], Phaser.Easing.Linear.None);
+        for (i = 0; i < horseNum; i++) {
+            section = this.rndSection(duration[i], this.runLength, tweenLimit);
+            // var btemptween = game.add.tween(this.balls[i].cameraOffset).to({ x: 10 + bSectionDistance }, section[0], Phaser.Easing.Linear.None);
+            var ptemptween = game.add.tween(this.players[i]).to({ x: this.startX + pSectionDistance }, section[0], Phaser.Easing.Linear.None);
             for (tweenI = 1; tweenI < tweenLimit; tweenI++) {
-                btemptween.to({ x: 10 + bSectionDistance * (tweenI + 1) }, section[tweenI], Phaser.Easing.Linear.None);
-                ptemptween.to({ x: pSectionDistance * (tweenI + 1) }, section[tweenI], Phaser.Easing.Linear.None);
+                // btemptween.to({ x: 10 + bSectionDistance * (tweenI + 1) }, section[tweenI], Phaser.Easing.Linear.None);
+                ptemptween.to({ x: this.startX + pSectionDistance * (tweenI + 1) }, section[tweenI], Phaser.Easing.Linear.None);
             }
-            btween[i] = btemptween;
+            // btween[i] = btemptween;
             ptween[i] = ptemptween;
         }
-        for (i = 0; i < 5; i++) {
-            this.players[i].animations.add('swim', Phaser.Animation.generateFrameNames('greenJellyfish', 0, 39, '', 4), 30, true);
-            this.players[i].animations.play('swim');
-            btween[i].start();
+        for (i = 0; i < horseNum; i++) {
+            this.players[i].animations.add('run');
+            this.players[i].animations.play('run', 12, true);
+            // btween[i].start();
+            ptween[i].onComplete.add(this.runStop, this);
             ptween[i].start();
         }
-        game.add.tween(game.camera).to({ x: 720 }, cameraMoveTime, Phaser.Easing.Linear.None, true);
+        game.add.tween(game.camera).to({ x: 1440 }, cameraMoveTime, Phaser.Easing.Linear.None, true);
+    },
+
+    runStop: function () {
+        for (i = 0; i < horseNum; i++) {
+            if (!this.players[i].runStop && this.players[i].x == this.startX + this.runLength) {
+                this.players[i].loadTexture('stand', this.players[i].horseId - 1);
+                this.players[i].runStop = true;
+            }
+        }
     },
 
     update: function () {

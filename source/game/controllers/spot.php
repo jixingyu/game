@@ -17,8 +17,8 @@ class Spot extends Front_Controller
     {
         $config = $this->getConfig();
     	$data = array(
-            'title' => '找茬',
-            'initial_time' => $config['initial_time'],
+            'title'  => '找茬',
+            'config' => json_encode($config),
         );
 
         $this->load->view('spot', $data);
@@ -36,5 +36,46 @@ class Spot extends Front_Controller
             $this->cache->save('spot_config', $config);
         }
         return $config;
+    }
+
+    public function play()
+    {
+        $config = $this->getConfig();
+        $post = $this->input->post();
+        $this->load->model(array('spot_log_model'));
+        $currentTime = time();
+        if ($post['status'] == 0) {
+            // begin
+            $this->spot_log_model->insert(array(
+                'uid'             => $this->uid,
+                'reminder_times'  => 0,
+                'added_time'      => 0,
+                'consume_points'  => 0,
+                'create_time'     => $currentTime,
+                'update_time'     => $currentTime,
+                'level'           => 0,
+                'award'           => '',
+            ));
+            $this->response();
+        } else {
+            if (empty($post['i'])) {
+                $this->response(false, 404);
+            }
+            $post['r'] = isset($post['r']) ? intval($post['r']) : 0;
+            $post['t'] = isset($post['t']) ? intval($post['t']) : 0;
+            $consumePoints = ($post['r'] - $config['free_reminder']) * $config['reminder_points']
+                    + $post['t'] / $config['time_chunk'] * $config['time_chunk_points'];
+            if (!empty($post['p'])) {
+                $this->spot_log_model->set('level', '`level`+1', false);
+            }
+            $this->spot_log_model->set('reminder_times', '`reminder_times`+' . $post['r'], false);
+            $this->spot_log_model->set('added_time', '`added_time`+' . $post['t'], false);
+            $this->spot_log_model->set('consume_points', '`consume_points`+' . $consumePoints, false);
+            $this->spot_log_model->update(array('update_time' => $currentTime), array(
+                'id'  => $post['i'],
+                'uid' => $this->uid,
+            ));
+            $this->response(array('c' => $consumePoints));
+        }
     }
 }
