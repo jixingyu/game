@@ -33,9 +33,6 @@ BasicGame.Boot.prototype = {
             this.myresize(this.parentElement, this, false); 
             // you would probably just use this.game.scale.setResizeCallback(this.resize, this);
         }, this);
-
-        this.game.state.start('Preload', true, false);
-
     },
 
     myresize: function (element, context, logging) {
@@ -60,7 +57,8 @@ BasicGame.Boot.prototype = {
     preload: function () {
 
         //  Here we load the assets required for our preloader (in this case a background and a loading bar)
-        this.load.image('preloaderBar', 'assets/loading.gif');
+        this.load.image('preloaderBar', 'assets/preloader.png');
+        this.load.image('preloaderbar-bottom', 'assets/preloader-bottom.png');
 
     },
 
@@ -98,14 +96,18 @@ BasicGame.Boot.prototype = {
 
 BasicGame.Preloader = function (game) {
     this.preloadBar = null;
+
+    this.ready = false;
+
 };
 
 BasicGame.Preloader.prototype = {
 
     preload: function () {
-        // game.stage.backgroundColor = '#272822';
-        this.preloadBar = this.add.sprite(game.width/2, game.height/2, 'preloaderBar');
-        this.preloadBar.anchor.setTo(0.5,0.5);
+        this.add.sprite(100, 500, 'preloaderbar-bottom');
+        this.preloadBar = this.add.sprite(106.5, 513.5, 'preloaderBar');
+        // this.preloadBar.anchor.setTo(0.5,0.5);
+
         this.load.setPreloadSprite(this.preloadBar);
 
         for (i = 0; i < horseNum; i++) {

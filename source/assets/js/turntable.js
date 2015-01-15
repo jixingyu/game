@@ -59,9 +59,6 @@ BasicGame.Boot.prototype = {
             this.myresize(this.parentElement, this, false); 
             // you would probably just use this.game.scale.setResizeCallback(this.resize, this);
         }, this);
-
-        this.game.state.start('Preload', true, false);
-
     },
 
     myresize: function (element, context, logging) {
