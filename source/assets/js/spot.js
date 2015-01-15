@@ -34,7 +34,7 @@ BasicGame.Boot.prototype = {
         this.stage.disableVisibilityChange = true;
         this.scale.parentIsWindow = true;
 
-        if (winHeight / winWidth > 1.4 && winHeight / winWidth < 2) {
+        if (winHeight / winWidth > 1.5 && winHeight / winWidth < 2) {
             this.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
         } else {
             this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
