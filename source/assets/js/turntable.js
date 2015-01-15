@@ -14,56 +14,34 @@ BasicGame = {
 };
 
 BasicGame.Boot = function (game) {
-    this.parentElement;
 };
 
 BasicGame.Boot.prototype = {
 
     init: function () {
 
-        // this.input.maxPointers = 1;
-        // this.stage.disableVisibilityChange = true;
+        this.input.maxPointers = 1;
+        this.stage.disableVisibilityChange = true;
+        this.scale.parentIsWindow = true;
 
-        // if (this.game.device.desktop)
-        // {
-        //     this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-        //     this.scale.setMinMax(480, 260, 1024, 768);
-        //     this.scale.pageAlignHorizontally = true;
-        //     this.scale.pageAlignVertically = true;
-        //     this.scale.setScreenSize(true);
-        //     this.scale.refresh();
-        // }
-        // else
-        // {
-        //     this.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
-        //     // this.scale.setMinMax(480, 260, 1024, 768);
-        //     this.scale.pageAlignHorizontally = true;
-        //     this.scale.pageAlignVertically = true;
-        //     // this.scale.forceOrientation(true, false);
-        //     // this.scale.setResizeCallback(this.gameResized, this);
-        //     // this.scale.enterIncorrectOrientation.add(this.enterIncorrectOrientation, this);
-        //     // this.scale.leaveIncorrectOrientation.add(this.leaveIncorrectOrientation, this);
-        //     this.scale.setScreenSize(true);
-        //     this.scale.refresh();
-        // }
-        this.parentElement = document.getElementById("game");
-        this.game.scale.fullScreenTarget = this.parentElement;
-        this.game.scale.scaleMode = Phaser.ScaleManager.USER_SCALE;
-        this.game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
-        this.game.scale.pageAlignHorizontally = true;
-        this.game.scale.pageAlignVertically = true;
-        this.game.stage.disableVisibilityChange = true;
-        this.game.input.maxPointers = 1;
-
-        this.game.scale.setResizeCallback(function () {
-            this.myresize(this.parentElement, this, false); 
-            // you would probably just use this.game.scale.setResizeCallback(this.resize, this);
-        }, this);
-    },
-
-    myresize: function (element, context, logging) {
-        var _this = context;
-
+        if (this.game.device.desktop)
+        {
+            this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+            this.scale.setMinMax(480, 260, 1024, 768);
+            this.scale.pageAlignHorizontally = true;
+            this.scale.pageAlignVertically = true;
+        }
+        else
+        {
+            this.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
+            // this.scale.setMinMax(480, 260, 1024, 768);
+            this.scale.pageAlignHorizontally = true;
+            this.scale.pageAlignVertically = true;
+            // this.scale.forceOrientation(true, false);
+            // this.scale.setResizeCallback(this.gameResized, this);
+            // this.scale.enterIncorrectOrientation.add(this.enterIncorrectOrientation, this);
+            // this.scale.leaveIncorrectOrientation.add(this.leaveIncorrectOrientation, this);
+        }
         if (window.innerWidth) {
             winWidth = window.innerWidth;
             winHeight = window.innerHeight;
@@ -74,28 +52,55 @@ BasicGame.Boot.prototype = {
             winHeight = document.documentElement.clientHeight;
             winWidth = document.documentElement.clientWidth;
         }
-
-        // A value of 1 means no scaling 0.5 means half size, 2 double the size and so on.
-        var scale = Math.min(winWidth / _this.game.width, winHeight / _this.game.height);
-
-        // Resize parent div in order to vertically center the canvas correctly.
-        element.style.minHeight = winHeight.toString() + "px";
-
-        // Resize the canvas keeping the original aspect ratio.
-        _this.game.scale.setUserScale(scale, scale, 0, 0);
-
         var descobj=document.getElementById("desc");
         var infoobj=document.getElementById("info");
         descobj.style.top=winHeight * 0.7 + 'px';
         descobj.style.height=winHeight * 0.3 + 'px';
         infoobj.style.height=(winHeight * 0.3 - 30) + 'px';
-
-        if (logging == true) {
-            var w = Math.floor(_this.game.width * scale),
-            h = Math.floor(_this.game.height * scale);
-            console.info("The game has just been resized to: " + w + " x " + h);
-        }
     },
+    // init: function () {
+    //     this.parentElement = document.getElementById("game");
+    //     this.game.scale.fullScreenTarget = this.parentElement;
+    //     this.game.scale.scaleMode = Phaser.ScaleManager.USER_SCALE;
+    //     this.game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
+    //     this.game.scale.pageAlignHorizontally = true;
+    //     this.game.scale.pageAlignVertically = true;
+    //     this.game.stage.disableVisibilityChange = true;
+    //     this.game.input.maxPointers = 1;
+
+    //     this.game.scale.setResizeCallback(function () {
+    //         this.myresize(); 
+    //         // you would probably just use this.game.scale.setResizeCallback(this.resize, this);
+    //     }, this);
+    // },
+
+    // myresize: function () {
+    //     if (window.innerWidth) {
+    //         winWidth = window.innerWidth;
+    //         winHeight = window.innerHeight;
+    //     } else if ((document.body) && (document.body.clientWidth)) {
+    //         winWidth = document.body.clientWidth;
+    //         winHeight = document.body.clientHeight;
+    //     } else if (document.documentElement && document.documentElement.clientHeight && document.documentElement.clientWidth) {
+    //         winHeight = document.documentElement.clientHeight;
+    //         winWidth = document.documentElement.clientWidth;
+    //     }
+
+    //     // A value of 1 means no scaling 0.5 means half size, 2 double the size and so on.
+    //     var scale = Math.min(window.innerWidth / this.game.width, window.innerHeight / this.game.height);
+
+    //     // Resize parent div in order to vertically center the canvas correctly.
+    //     this.parentElement.style.minHeight = window.innerHeight.toString() + "px";
+
+    //     // Resize the canvas keeping the original aspect ratio.
+    //     this.game.scale.setUserScale(scale, scale, 0, 0);
+
+    //     var descobj=document.getElementById("desc");
+    //     var infoobj=document.getElementById("info");
+    //     descobj.style.top=winHeight * 0.7 + 'px';
+    //     descobj.style.height=winHeight * 0.3 + 'px';
+    //     infoobj.style.height=(winHeight * 0.3 - 30) + 'px';
+    // },
 
     preload: function () {
 

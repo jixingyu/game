@@ -14,44 +14,33 @@ BasicGame = {
 };
 
 BasicGame.Boot = function (game) {
-    this.parentElement;
 };
 
 BasicGame.Boot.prototype = {
 
     init: function () {
-        this.parentElement = document.getElementById("game");
-        this.game.scale.fullScreenTarget = this.parentElement;
-        this.game.scale.scaleMode = Phaser.ScaleManager.USER_SCALE;
-        this.game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
-        this.game.scale.pageAlignHorizontally = true;
-        this.game.scale.pageAlignVertically = true;
-        this.game.stage.disableVisibilityChange = true;
-        this.game.input.maxPointers = 1;
-
-        this.game.scale.setResizeCallback(function () {
-            this.myresize(this.parentElement, this, false); 
-            // you would probably just use this.game.scale.setResizeCallback(this.resize, this);
-        }, this);
-    },
-
-    myresize: function (element, context, logging) {
-        var _this = context;
-
-        // A value of 1 means no scaling 0.5 means half size, 2 double the size and so on.
-        var scale = Math.min(window.innerWidth / _this.game.width, window.innerHeight / _this.game.height);
-
-        // Resize parent div in order to vertically center the canvas correctly.
-        element.style.minHeight = window.innerHeight.toString() + "px";
-
-        // Resize the canvas keeping the original aspect ratio.
-        _this.game.scale.setUserScale(scale, scale, 0, 0);
-
-        if (logging == true) {
-            var w = Math.floor(_this.game.width * scale),
-            h = Math.floor(_this.game.height * scale);
-            console.info("The game has just been resized to: " + w + " x " + h);
+        if (window.innerWidth) {
+            winWidth = window.innerWidth;
+            winHeight = window.innerHeight;
+        } else if ((document.body) && (document.body.clientWidth)) {
+            winWidth = document.body.clientWidth;
+            winHeight = document.body.clientHeight;
+        } else if (document.documentElement && document.documentElement.clientHeight && document.documentElement.clientWidth) {
+            winHeight = document.documentElement.clientHeight;
+            winWidth = document.documentElement.clientWidth;
         }
+
+        this.input.maxPointers = 1;
+        this.stage.disableVisibilityChange = true;
+        this.scale.parentIsWindow = true;
+
+        if (winHeight / winWidth > 1.4 && winHeight / winWidth < 2) {
+            this.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
+        } else {
+            this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+        }
+        this.scale.pageAlignHorizontally = true;
+        this.scale.pageAlignVertically = true;
     },
 
     preload: function () {
@@ -132,19 +121,14 @@ BasicGame.Preloader.prototype = {
     },
 };
 
-
-rank1=1;
-rankPoints1=1*chip;
-rank2=2;
-rankPoints2=1*chip;
-rank3=3;
-rankPoints3=1*chip;
+myChips = {};
+myChips.rank = [4,5,6];
+myChips.rankPoints = [200,400,300];
 
 BasicGame.MainMenu = function (game) {
 
     this.music = null;
     this.playButton = null;
-    this.myChips = {};
 };
 
 BasicGame.MainMenu.prototype = {
@@ -163,26 +147,23 @@ BasicGame.MainMenu.prototype = {
 
     },
 
+    addRank: function (i, j) {
+        myChips.rank[i - 1] = j;
+    },
+
+    addPoints: function (i, j) {
+        myChips.rankPoints[i - 1] += j;
+    },
+
     startGame: function () {
 
         //  Ok, the Play Button has been clicked or touched, so let's stop the music (otherwise it'll carry on playing)
         // this.music.stop();
-        if (rank1) {
-            this.myChips.rank1 = rank1;
-            this.myChips.rankPoints1 = rankPoints1;
-        }
-        if (rank2) {
-            this.myChips.rank2 = rank2;
-            this.myChips.rankPoints2 = rankPoints2;
-        }
-        if (rank3) {
-            this.myChips.rank3 = rank3;
-            this.myChips.rankPoints3 = rankPoints3;
-        }
+
         var _self = this;
         ajax({
             url: '/horserace/start',
-            data: this.myChips,
+            data: myChips,
             onSuccess: function(data) {
                 var resp = JSON.parse(data);
                 if (resp.code == 0) {
@@ -238,9 +219,9 @@ BasicGame.Game.prototype = {
         this.panel.cameraOffset.y = 0;
 
         var style = { font: "23px Arial", fill: "#000000" };
-        game.add.text(80, 100, '    ' + rank1 + '号马\n下注' + rankPoints1 + '积分', style, this.panel);
-        game.add.text(300, 100, '    ' + rank2 + '号马\n下注' + rankPoints2 + '积分', style, this.panel);
-        game.add.text(530, 100, '    ' + rank3 + '号马\n下注' + rankPoints3 + '积分', style, this.panel);
+        game.add.text(80, 100, '    ' + myChips['rank'][0] + '号马\n下注' + myChips['rankPoints'][0] + '积分', style, this.panel);
+        game.add.text(300, 100, '    ' + myChips['rank'][1] + '号马\n下注' + myChips['rankPoints'][1] + '积分', style, this.panel);
+        game.add.text(530, 100, '    ' + myChips['rank'][2] + '号马\n下注' + myChips['rankPoints'][2] + '积分', style, this.panel);
 
         var y = 188;
         // var by = 10;
