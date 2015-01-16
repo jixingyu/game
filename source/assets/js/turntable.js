@@ -19,29 +19,7 @@ BasicGame.Boot = function (game) {
 BasicGame.Boot.prototype = {
 
     init: function () {
-
-        this.input.maxPointers = 1;
-        this.stage.disableVisibilityChange = true;
-        this.scale.parentIsWindow = true;
-
-        if (this.game.device.desktop)
-        {
-            this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-            this.scale.setMinMax(480, 260, 1024, 768);
-            this.scale.pageAlignHorizontally = true;
-            this.scale.pageAlignVertically = true;
-        }
-        else
-        {
-            this.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
-            // this.scale.setMinMax(480, 260, 1024, 768);
-            this.scale.pageAlignHorizontally = true;
-            this.scale.pageAlignVertically = true;
-            // this.scale.forceOrientation(true, false);
-            // this.scale.setResizeCallback(this.gameResized, this);
-            // this.scale.enterIncorrectOrientation.add(this.enterIncorrectOrientation, this);
-            // this.scale.leaveIncorrectOrientation.add(this.leaveIncorrectOrientation, this);
-        }
+        game.stage.backgroundColor = document.body.bgColor;
         if (window.innerWidth) {
             winWidth = window.innerWidth;
             winHeight = window.innerHeight;
@@ -52,11 +30,18 @@ BasicGame.Boot.prototype = {
             winHeight = document.documentElement.clientHeight;
             winWidth = document.documentElement.clientWidth;
         }
-        var descobj=document.getElementById("desc");
-        var infoobj=document.getElementById("info");
-        descobj.style.top=winHeight * 0.7 + 'px';
-        descobj.style.height=winHeight * 0.3 + 'px';
-        infoobj.style.height=(winHeight * 0.3 - 30) + 'px';
+
+        this.input.maxPointers = 1;
+        this.stage.disableVisibilityChange = true;
+        this.scale.parentIsWindow = true;
+
+        if (winHeight / winWidth > 1.5 && winHeight / winWidth < 2) {
+            this.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
+        } else {
+            this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+        }
+        this.scale.pageAlignHorizontally = true;
+        this.scale.pageAlignVertically = true;
     },
     // init: function () {
     //     this.parentElement = document.getElementById("game");
@@ -167,8 +152,10 @@ BasicGame.Preloader.prototype = {
         this.load.image('lottery','assets/turntable/start-button1.png');
         this.load.image('press','assets/turntable/press-button.png');
         this.load.image('mid-pannel','assets/turntable/mid.png');
-
-        // game.stage.backgroundColor = '#000000';
+        this.load.image('desc-pannel','assets/turntable/desc.png');
+        this.load.image('ok','assets/ok.png');
+        this.load.image('help','assets/help.png');
+        this.load.image('music','assets/music.png');
 
         // this.load.audio('hit_ground_sound', 'assets/turntable/ouch.wav');
 
@@ -223,8 +210,12 @@ BasicGame.Game = function (game) {
     this.rnd;       //  the repeatable random number generator
     this.ready = true;
     this.award = '';
+    this.costText;
     this.gameoverText;
     this.gameoverGroup;
+    this.descGroup;
+    this.descobj;
+    this.remainNum;
 
     //  You can use any of these from any function within this State.
     //  But do consider them as being 'reserved words', i.e. don't create a property for your own game called "world" or you'll over-write the world reference.
@@ -235,12 +226,13 @@ BasicGame.Game.prototype = {
 
     create: function () {
 
-        // this.add.sprite(0, 0, 'background');
+        game.add.button(470, 10, 'help', this.toggleHelp, this);
+        this.add.sprite(588, 10, 'music');
 
         var turnGroup = game.add.group();
         var turntableCache = this.cache.getImage('turntable');
         circleX = game.width / 2;
-        circleY = 100 + turntableCache.height / 2;
+        circleY = 150 + turntableCache.height / 2;
         this.turntable = turnGroup.create(circleX, circleY, 'turntable');
         this.turntable.anchor.setTo(0.5,0.5);
 
@@ -248,14 +240,27 @@ BasicGame.Game.prototype = {
 
         var lotteryButton = game.add.button(circleX, circleY, 'lottery', this.lottery, this);
         lotteryButton.anchor.setTo(0.5,0.5);
+        turnGroup.add(lotteryButton);
 
-        // gameover group
-        this.gameoverGroup = game.add.group();
-        this.gameoverGroup.visible = false;
-        var style = { font: "32px Arial", fill: "#ffffff", align: "center" };
+        this.remainNum = 0;
+        if (isLogin) {
+            this.remainNum = freeNum - todayNum;
+        } else if (!isLogin && !!localStorage) {
+            var today = new Date().toLocaleDateString();
+            todayTimes = localStorage.getItem('todayTimes');
+            lastDay = localStorage.getItem('lastDay');
+            if (!lastDay || today != lastDay) {
+                todayTimes = 0;
+            }
+            this.remainNum = freeNum - todayTimes;
+        }
 
-        this.gameoverText = game.add.text(game.world.centerX, 40, '', style, this.gameoverGroup);
-        this.gameoverText.anchor.setTo(0.5);
+        this.costText = game.add.text(game.world.centerX, circleY + 130, '', { font: "32px Arial", fill: "#ffffff", align: "center" }, turnGroup);
+        this.costText.anchor.setTo(0.5);
+        this.showCost();
+
+        game.add.text(100, 1000, '王小明', { font: "32px Arial", fill: "#ffffff", align: "center" }, turnGroup);
+
 
         // descPanel = new Phaser.Rectangle(0, 800, 680, 300);//game.debug.geom(descPanel,'#0fffff');
         // desc = "\n" + desc.replace(/###/g,"\n");
@@ -264,14 +269,56 @@ BasicGame.Game.prototype = {
         // descText.inputEnabled = true;
         // descText.input.enableDrag();
         // descText.input.allowHorizontalDrag = false;
-        var descobj=document.getElementById("desc");
-        descobj.style.display="block";
+        this.descobj = document.getElementById("desc");
+        var yScale = this.scale.height / 1280;
+        var xScale = this.scale.width / 720;
+
+        this.descobj.style.top=(0.5*(window.innerHeight-this.scale.height)+100*yScale) + 'px';
+        this.descobj.style.left=(0.5*(window.innerWidth-this.scale.width)+50*xScale) + 'px';
+        this.descobj.style.height=680*yScale + 'px';
+        this.descobj.style.width=620*yScale + 'px';
+        this.descobj.style.fontSize=(yScale == 1 ? xScale : yScale)*32 + 'px';
+
+        this.descGroup = game.add.group();
+        var panel = this.add.sprite(game.world.centerX, 20, 'desc-pannel');
+        panel.anchor.setTo(0.5, 0);
+        var okbutton = this.add.button(game.world.centerX, 10 + this.cache.getImage('desc-pannel').height, 'ok', this.toggleHelp, this);
+        okbutton.anchor.setTo(0.5, 0);
+        this.descGroup.add(panel);
+        this.descGroup.add(okbutton);
+        this.descGroup.visible = false;
+
+        // gameover group
+        this.gameoverGroup = game.add.group();
+        this.gameoverGroup.visible = false;
+        var style = { font: "32px Arial", fill: "#000000", align: "center" };
+
+        this.gameoverText = game.add.text(game.world.centerX, 40, '', style, this.gameoverGroup);
+        this.gameoverText.anchor.setTo(0.5);
     },
 
     update: function () {
 
         //  Honestly, just about anything could go here. It's YOUR game after all. Eat your heart out!
 
+    },
+
+    showCost: function () {
+        if (this.remainNum > 0) {
+            this.costText.setText('免费(' + this.remainNum + ')');
+        } else {
+            this.costText.setText('每次' + consumePoints + '积分');
+        }
+    },
+
+    toggleHelp: function () {
+        if (this.descGroup.visible) {
+            this.descGroup.visible = false;
+            this.descobj.style.display="none";
+        } else {
+            this.descGroup.visible = true;
+            this.descobj.style.display="block";
+        }
     },
 
     lottery: function () {
@@ -293,6 +340,10 @@ BasicGame.Game.prototype = {
     },
 
     turn: function (turnAngle) {
+        if (isLogin && this.remainNum > 0) {
+            this.remainNum--;
+            this.showCost();
+        }
         if(!isLogin && !!localStorage) {
             var today = new Date().toLocaleDateString();
             todayTimes = localStorage.getItem('todayTimes');
@@ -302,12 +353,16 @@ BasicGame.Game.prototype = {
             }
 
             if (todayTimes >= freeNum) {
-                alert('超过3次');
+                alert('请登录');
                 return;
             }
 
             localStorage.setItem('todayTimes', ++todayTimes);
             localStorage.setItem('lastDay', today);
+            if (this.remainNum > 0) {
+                this.remainNum--;
+                this.showCost();
+            }
         }
         this.ready = false;
 

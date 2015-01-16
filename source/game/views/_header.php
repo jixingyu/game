@@ -13,5 +13,5 @@
   <script type="text/javascript" src="<?php echo base_url('assets/js/ajax.js');?>"></script>
 </head>
 
-<body style="margin:0;" bgcolor="black">
+<body style="margin:0;" bgcolor="<?php echo isset($bgcolor) ? $bgcolor : 'black'; ?>">
 

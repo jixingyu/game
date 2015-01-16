@@ -19,12 +19,25 @@ class Turntable extends Front_Controller
     {
         $config = $this->getConfig();
     	$data = array(
+            'bgcolor' => '17e58e',
             'title' => '转盘',
             'image' => $config['image'],
             'isLogin' => $this->uid ? 1 : 0,
+            'consumePoints' => $config['consume_points'],
             'freeNum' => $config['free_num'],
             'desc' => $config['description'],//str_replace(array("\r\n",'"'), array('###','\"'), $config['description']),
         );
+        if ($this->uid) {
+            $this->load->model('turntable_play_model');
+            $playData = $this->turntable_play_model->get_one(array(
+                'uid' => $this->uid,
+            ));
+            if (!empty($playData)) {
+                $data['todayNum'] = $playData['today_num'];
+            } else {
+                $data['todayNum'] = 0;
+            }
+        }
 
         $this->load->view('turntable', $data);
     }

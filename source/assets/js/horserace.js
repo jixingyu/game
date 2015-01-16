@@ -19,6 +19,7 @@ BasicGame.Boot = function (game) {
 BasicGame.Boot.prototype = {
 
     init: function () {
+        game.stage.backgroundColor = document.body.bgColor;
         if (window.innerWidth) {
             winWidth = window.innerWidth;
             winHeight = window.innerHeight;

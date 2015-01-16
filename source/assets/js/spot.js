@@ -1,4 +1,4 @@
-var game = new Phaser.Game(720, 1280, Phaser.AUTO, 'game');
+var game = new Phaser.Game(720, 1160, Phaser.AUTO, 'game');
 
 BasicGame = {
 
@@ -19,6 +19,7 @@ BasicGame.Boot = function (game) {
 BasicGame.Boot.prototype = {
 
     init: function () {
+        game.stage.backgroundColor = document.body.bgColor;
         if (window.innerWidth) {
             winWidth = window.innerWidth;
             winHeight = window.innerHeight;
