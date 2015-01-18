@@ -25,7 +25,7 @@ class Turntable extends Front_Controller
             'isLogin' => $this->uid ? 1 : 0,
             'consumePoints' => $config['consume_points'],
             'freeNum' => $config['free_num'],
-            'desc' => str_replace(array("\r\n",'"'), array('###','\"'), $config['description']),
+            'desc' => str_replace("\r", '###', str_replace("\n", '###', str_replace(array("\r\n",'"'), array('###','\"'), $config['description']))),
         );
         if ($this->uid) {
             $this->load->model('turntable_play_model');
