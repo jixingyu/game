@@ -1,4 +1,4 @@
-var game = new Phaser.Game(720, 1280, Phaser.AUTO, 'game');
+var game = new Phaser.Game(720, 1080, Phaser.AUTO, 'game');
 var horseNum = 8;
 BasicGame = {
 
@@ -35,7 +35,7 @@ BasicGame.Boot.prototype = {
         this.stage.disableVisibilityChange = true;
         this.scale.parentIsWindow = true;
 
-        if (winHeight / winWidth > 1.5 && winHeight / winWidth < 2) {
+        if (winHeight / winWidth > 1.3 && winHeight / winWidth < 1.7) {
             this.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
         } else {
             this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
@@ -202,7 +202,7 @@ BasicGame.Game.prototype = {
     },
 
     create: function () {
-        game.world.setBounds(0, 0, this.runwayLength, 1280);
+        game.world.setBounds(0, 0, this.runwayLength, 1080);
         game.add.tileSprite(
             0,
             0,
@@ -224,11 +224,11 @@ BasicGame.Game.prototype = {
         game.add.text(300, 100, '    ' + myChips['rank'][1] + '号马\n下注' + myChips['rankPoints'][1] + '积分', style, this.panel);
         game.add.text(530, 100, '    ' + myChips['rank'][2] + '号马\n下注' + myChips['rankPoints'][2] + '积分', style, this.panel);
 
-        var y = 188;
+        var y = 183;
         // var by = 10;
         for (i = 0; i < horseNum; i++) {
             // this.balls[id] = game.add.sprite(10, by, 'balls', id);
-            this.players[i] = game.add.sprite(this.startX, y + 135 * (this.ranklist[i] - 1), 'horse' + this.ranklist[i], 0);
+            this.players[i] = game.add.sprite(this.startX, y + 107 * (this.ranklist[i] - 1), 'horse' + this.ranklist[i], 0);
             this.players[i].horseId = this.ranklist[i];
             // by += 20;
         }

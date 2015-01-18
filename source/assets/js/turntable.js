@@ -1,4 +1,4 @@
-var game = new Phaser.Game(720, 1280, Phaser.AUTO, 'game');
+var game = new Phaser.Game(720, 1080, Phaser.AUTO, 'game');
 
 BasicGame = {
 
@@ -35,57 +35,14 @@ BasicGame.Boot.prototype = {
         this.stage.disableVisibilityChange = true;
         this.scale.parentIsWindow = true;
 
-        if (winHeight / winWidth > 1.5 && winHeight / winWidth < 2) {
-            this.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
-        } else {
+        // if (winHeight / winWidth > 1.3 && winHeight / winWidth < 1.7) {
+        //     this.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
+        // } else {
             this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-        }
+        // }
         this.scale.pageAlignHorizontally = true;
         this.scale.pageAlignVertically = true;
     },
-    // init: function () {
-    //     this.parentElement = document.getElementById("game");
-    //     this.game.scale.fullScreenTarget = this.parentElement;
-    //     this.game.scale.scaleMode = Phaser.ScaleManager.USER_SCALE;
-    //     this.game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
-    //     this.game.scale.pageAlignHorizontally = true;
-    //     this.game.scale.pageAlignVertically = true;
-    //     this.game.stage.disableVisibilityChange = true;
-    //     this.game.input.maxPointers = 1;
-
-    //     this.game.scale.setResizeCallback(function () {
-    //         this.myresize(); 
-    //         // you would probably just use this.game.scale.setResizeCallback(this.resize, this);
-    //     }, this);
-    // },
-
-    // myresize: function () {
-    //     if (window.innerWidth) {
-    //         winWidth = window.innerWidth;
-    //         winHeight = window.innerHeight;
-    //     } else if ((document.body) && (document.body.clientWidth)) {
-    //         winWidth = document.body.clientWidth;
-    //         winHeight = document.body.clientHeight;
-    //     } else if (document.documentElement && document.documentElement.clientHeight && document.documentElement.clientWidth) {
-    //         winHeight = document.documentElement.clientHeight;
-    //         winWidth = document.documentElement.clientWidth;
-    //     }
-
-    //     // A value of 1 means no scaling 0.5 means half size, 2 double the size and so on.
-    //     var scale = Math.min(window.innerWidth / this.game.width, window.innerHeight / this.game.height);
-
-    //     // Resize parent div in order to vertically center the canvas correctly.
-    //     this.parentElement.style.minHeight = window.innerHeight.toString() + "px";
-
-    //     // Resize the canvas keeping the original aspect ratio.
-    //     this.game.scale.setUserScale(scale, scale, 0, 0);
-
-    //     var descobj=document.getElementById("desc");
-    //     var infoobj=document.getElementById("info");
-    //     descobj.style.top=winHeight * 0.7 + 'px';
-    //     descobj.style.height=winHeight * 0.3 + 'px';
-    //     infoobj.style.height=(winHeight * 0.3 - 30) + 'px';
-    // },
 
     preload: function () {
 
@@ -100,31 +57,6 @@ BasicGame.Boot.prototype = {
         this.state.start('Preloader');
 
     },
-
-    // gameResized: function (width, height) {
-
-    //     //  This could be handy if you need to do any extra processing if the game resizes.
-    //     //  A resize could happen if for example swapping orientation on a device or resizing the browser window.
-    //     //  Note that this callback is only really useful if you use a ScaleMode of RESIZE and place it inside your main game state.
-
-    // },
-
-    // enterIncorrectOrientation: function () {
-
-    //     BasicGame.orientated = false;
-
-    //     document.getElementById('orientation').style.display = 'block';
-
-    // },
-
-    // leaveIncorrectOrientation: function () {
-
-    //     BasicGame.orientated = true;
-
-    //     document.getElementById('orientation').style.display = 'none';
-
-    // }
-
 };
 
 
@@ -141,24 +73,16 @@ BasicGame.Preloader.prototype = {
     preload: function () {
         this.add.sprite(100, 500, 'preloaderbar-bottom');
         this.preloadBar = this.add.sprite(106.5, 513.5, 'preloaderBar');
-        // this.preloadBar.anchor.setTo(0.5,0.5);
 
         this.load.setPreloadSprite(this.preloadBar);
 
-        //  Here we load the rest of the assets our game needs.
-        //  As this is just a Project Template I've not provided these assets, the lines below won't work as the files themselves will 404, they are just an example of use.
-        // this.load.image('background','assets/turntable/background.jpg');
         this.load.image('turntable',turntableImage);
         this.load.image('lottery','assets/turntable/start-button1.png');
         this.load.image('press','assets/turntable/press-button.png');
         this.load.image('mid-pannel','assets/turntable/mid.png');
-        this.load.image('desc-pannel','assets/turntable/desc.png');
-        this.load.image('ok','assets/ok.png');
-        this.load.image('help','assets/help.png');
-        this.load.image('music','assets/music.png');
-
-        // this.load.audio('hit_ground_sound', 'assets/turntable/ouch.wav');
-
+        this.load.image('desc-header','assets/turntable/desc-header.png');
+        this.load.image('desc-body','assets/turntable/desc-body.png');
+        this.load.image('desc-footer','assets/turntable/desc-footer.png');
     },
 
     create: function () {
@@ -170,16 +94,6 @@ BasicGame.Preloader.prototype = {
 
     update: function () {
 
-        //  You don't actually need to do this, but I find it gives a much smoother game experience.
-        //  Basically it will wait for our audio file to be decoded before proceeding to the MainMenu.
-        //  You can jump right into the menu if you want and still play the music, but you'll have a few
-        //  seconds of delay while the mp3 decodes - so if you need your music to be in-sync with your menu
-        //  it's best to wait for it to decode here first, then carry on.
-        
-        //  If you don't have any music in your game then put the game.state.start line into the create function and delete
-        //  the update function completely.
-        
-        //if (this.cache.isSoundDecoded('hit_ground_sound') && this.ready == false)
         if (this.ready == false)
         {
             this.ready = true;
@@ -213,26 +127,22 @@ BasicGame.Game = function (game) {
     this.costText;
     this.gameoverText;
     this.gameoverGroup;
-    this.descGroup;
     this.descobj;
     this.remainNum;
+    this.scrollY = false;
 
     //  You can use any of these from any function within this State.
     //  But do consider them as being 'reserved words', i.e. don't create a property for your own game called "world" or you'll over-write the world reference.
 
 };
-// var descPanel;
+
 BasicGame.Game.prototype = {
 
     create: function () {
-
-        game.add.button(470, 10, 'help', this.toggleHelp, this);
-        this.add.sprite(588, 10, 'music');
-
         var turnGroup = game.add.group();
         var turntableCache = this.cache.getImage('turntable');
         circleX = game.width / 2;
-        circleY = 150 + turntableCache.height / 2;
+        circleY = 180 + turntableCache.height / 2;
         this.turntable = turnGroup.create(circleX, circleY, 'turntable');
         this.turntable.anchor.setTo(0.5,0.5);
 
@@ -259,48 +169,55 @@ BasicGame.Game.prototype = {
         this.costText.anchor.setTo(0.5);
         this.showCost();
 
-        game.add.text(100, 1000, '王小明', { font: "32px Arial", fill: "#ffffff", align: "center" }, turnGroup);
+        game.add.text(50, 20, '昵称：王小明\n游戏积分：1000', { font: "32px Arial", fill: "#000000"}, turnGroup);
 
+        desc = desc.replace(/###/g,"\n");
+        descText = game.add.text(30, 945, desc, { font: "25px Arial", fill: "#000000" });
+        descY = 880;
+        game.add.sprite(3, descY, 'desc-header');
+        descY += 61;
+        for (i = 1; i <= Math.ceil(descText.getLocalBounds().height / 17); i++) {
+            game.add.sprite(3, descY, 'desc-body');
+            descY += 17;
+        }
+        game.add.sprite(3, descY, 'desc-footer');
+        // descPanel.scale.y = (descText.getLocalBounds().height + 100) / 331;
+        game.world.bringToTop(descText);
 
-        // descPanel = new Phaser.Rectangle(0, 800, 680, 300);//game.debug.geom(descPanel,'#0fffff');
-        // desc = "\n" + desc.replace(/###/g,"\n");
-        // var descStyle = { font: "32px Arial", fill: "#ffffff", align: "center" };
-        // descText = game.add.text(20, 800, desc, descStyle);
         // descText.inputEnabled = true;
         // descText.input.enableDrag();
         // descText.input.allowHorizontalDrag = false;
-        this.descobj = document.getElementById("desc");
-        var yScale = this.scale.height / 1280;
-        var xScale = this.scale.width / 720;
+        // descPanel = new Phaser.Rectangle(100, 880, 10, descText.getLocalBounds().height);game.debug.geom(descPanel,'#000000');
 
-        this.descobj.style.top=(0.5*(window.innerHeight-this.scale.height)+100*yScale) + 'px';
-        this.descobj.style.left=(0.5*(window.innerWidth-this.scale.width)+50*xScale) + 'px';
-        this.descobj.style.height=680*yScale + 'px';
-        this.descobj.style.width=620*yScale + 'px';
-        this.descobj.style.fontSize=(yScale == 1 ? xScale : yScale)*32 + 'px';
-
-        this.descGroup = game.add.group();
-        var panel = this.add.sprite(game.world.centerX, 20, 'desc-pannel');
-        panel.anchor.setTo(0.5, 0);
-        var okbutton = this.add.button(game.world.centerX, 10 + this.cache.getImage('desc-pannel').height, 'ok', this.toggleHelp, this);
-        okbutton.anchor.setTo(0.5, 0);
-        this.descGroup.add(panel);
-        this.descGroup.add(okbutton);
-        this.descGroup.visible = false;
+        if (descText.getLocalBounds().height > 80) {
+            var myHeight = 1000 + descText.getLocalBounds().height;
+        } else {
+            var myHeight = 1080;
+        }
+        game.world.setBounds(0, 0, 720, myHeight);
+        game.inputEnabled = true;
+        game.input.onDown.add(this.beginScroll, this);
 
         // gameover group
         this.gameoverGroup = game.add.group();
         this.gameoverGroup.visible = false;
-        var style = { font: "32px Arial", fill: "#000000", align: "center" };
+        var style = { font: "50px Arial", fill: "#0000FF", align: "center" };
 
-        this.gameoverText = game.add.text(game.world.centerX, 40, '', style, this.gameoverGroup);
+        this.gameoverText = game.add.text(game.world.centerX, 150, '', style, this.gameoverGroup);
         this.gameoverText.anchor.setTo(0.5);
     },
 
     update: function () {
-
+        if (game.input.activePointer.isDown) {
+            game.camera.y += this.scrollY - game.input.activePointer.y;
+            this.scrollY = game.input.activePointer.y;
+        }
         //  Honestly, just about anything could go here. It's YOUR game after all. Eat your heart out!
 
+    },
+
+    beginScroll: function () {
+        this.scrollY = game.input.activePointer.y;
     },
 
     showCost: function () {
@@ -308,16 +225,6 @@ BasicGame.Game.prototype = {
             this.costText.setText('免费(' + this.remainNum + ')');
         } else {
             this.costText.setText('每次' + consumePoints + '积分');
-        }
-    },
-
-    toggleHelp: function () {
-        if (this.descGroup.visible) {
-            this.descGroup.visible = false;
-            this.descobj.style.display="none";
-        } else {
-            this.descGroup.visible = true;
-            this.descobj.style.display="block";
         }
     },
 
@@ -381,20 +288,9 @@ BasicGame.Game.prototype = {
         } else {
             var awardText = '恭喜，中了' + this.award + '！';
         }
-        this.gameoverText.setText("\n" + awardText);
+        this.gameoverText.setText(awardText);
         this.gameoverGroup.visible = true;
     },
-
-    // quitGame: function (pointer) {
-
-    //     //  Here you should destroy anything you no longer need.
-    //     //  Stop music, delete sprites, purge caches, free resources, all that good stuff.
-
-    //     //  Then let's go back to the main menu.
-    //     this.state.start('MainMenu');
-
-    // }
-
 };
 
 //  Add the States your game has.

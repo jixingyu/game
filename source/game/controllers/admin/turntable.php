@@ -106,6 +106,7 @@ class Turntable extends Admin_Controller
                         }
                         $this->turntable_model->update($post, array());
                         $data['status'] = 1;
+                        $this->cache->delete('turntable_config');
                     }
                 }
             }

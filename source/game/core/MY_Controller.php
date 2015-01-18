@@ -11,6 +11,7 @@ class Base_Controller extends CI_Controller
 
         parent::__construct();
 
+        $this->load->driver('cache', array('adapter' => 'file'));
         $this->load->helper('url');
 
     }//end __construct()
@@ -26,7 +27,6 @@ class Front_Controller extends Base_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->load->driver('cache', array('adapter' => 'file'));
         $this->uid = 1;//TODO
         if (!$this->uid && $this->checkLogin) {
             // 跳转到登录页面
