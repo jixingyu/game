@@ -30,7 +30,7 @@ class Spot extends Front_Controller
         if (empty($config)) {
             $this->load->model('spot_model');
             $config = $this->spot_model->get_one(array());
- 
+
             $config['mission'] = json_decode($config['mission'], true);
 
             $this->cache->save('spot_config', $config);
@@ -77,5 +77,12 @@ class Spot extends Front_Controller
             ));
             $this->response(array('c' => $consumePoints));
         }
+    }
+
+    public function images()
+    {
+        $this->load->model('spot_image_model');
+        $images = $this->spot_image_model->get_images();
+        $this->response($images);
     }
 }

@@ -1,5 +1,5 @@
 var game = new Phaser.Game(720, 1080, Phaser.AUTO, 'game');
-
+var points = 500;
 BasicGame = {
 
     /* Here we've just got some global level vars that persist regardless of State swaps */
@@ -20,26 +20,13 @@ BasicGame.Boot.prototype = {
 
     init: function () {
         game.stage.backgroundColor = document.body.bgColor;
-        if (window.innerWidth) {
-            winWidth = window.innerWidth;
-            winHeight = window.innerHeight;
-        } else if ((document.body) && (document.body.clientWidth)) {
-            winWidth = document.body.clientWidth;
-            winHeight = document.body.clientHeight;
-        } else if (document.documentElement && document.documentElement.clientHeight && document.documentElement.clientWidth) {
-            winHeight = document.documentElement.clientHeight;
-            winWidth = document.documentElement.clientWidth;
-        }
 
         this.input.maxPointers = 1;
         this.stage.disableVisibilityChange = true;
         this.scale.parentIsWindow = true;
 
-        // if (winHeight / winWidth > 1.3 && winHeight / winWidth < 1.7) {
-        //     this.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
-        // } else {
-            this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-        // }
+        this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+
         this.scale.pageAlignHorizontally = true;
         this.scale.pageAlignVertically = true;
     },
@@ -125,6 +112,7 @@ BasicGame.Game = function (game) {
     this.ready = true;
     this.award = '';
     this.costText;
+    this.pointsText;
     this.gameoverText;
     this.gameoverGroup;
     this.descobj;
@@ -169,7 +157,9 @@ BasicGame.Game.prototype = {
         this.costText.anchor.setTo(0.5);
         this.showCost();
 
-        game.add.text(50, 20, '昵称：王小明\n游戏积分：1000', { font: "32px Arial", fill: "#000000"}, turnGroup);
+        var nickname = game.add.text(game.world.centerX, 40, '王小明', { font: "40px Arial", fill: "#000000"}, turnGroup);
+        nickname.anchor.setTo(0.5, 0);
+        this.pointsText = game.add.text(600, 40, points, { font: "40px Arial", fill: "#000000"}, turnGroup);
 
         desc = desc.replace(/###/g,"\n");
         descText = game.add.text(30, 945, desc, { font: "25px Arial", fill: "#000000" });
@@ -203,7 +193,7 @@ BasicGame.Game.prototype = {
         this.gameoverGroup.visible = false;
         var style = { font: "50px Arial", fill: "#0000FF", align: "center" };
 
-        this.gameoverText = game.add.text(game.world.centerX, 150, '', style, this.gameoverGroup);
+        this.gameoverText = game.add.text(game.world.centerX, 140, '', style, this.gameoverGroup);
         this.gameoverText.anchor.setTo(0.5);
     },
 
@@ -247,9 +237,18 @@ BasicGame.Game.prototype = {
     },
 
     turn: function (turnAngle) {
-        if (isLogin && this.remainNum > 0) {
-            this.remainNum--;
-            this.showCost();
+        if (isLogin) {
+            if (this.remainNum > 0) {
+                this.remainNum--;
+                this.showCost();
+            } else {
+                points -= consumePoints;
+                if (points < 0) {
+                    alert('积分不够');
+                    return;
+                }
+                this.pointsText.setText(points);
+            }
         }
         if(!isLogin && !!localStorage) {
             var today = new Date().toLocaleDateString();

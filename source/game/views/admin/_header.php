@@ -118,6 +118,9 @@
 		                            <a href="/admin/spot">游戏参数配置</a>
 		                        </li>
 		                        <li>
+		                            <a href="/admin/spot/image">图片管理</a>
+		                        </li>
+		                        <li>
 		                            <a href="/admin/spot/statistic">统计</a>
 		                        </li>
 		                    </ul>
