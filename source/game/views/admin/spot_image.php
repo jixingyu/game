@@ -33,7 +33,7 @@
                 </div>
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        坐标设定
+                        不同点坐标设定
                     </div>
                     <!-- /.panel-heading -->
                     <div class="panel-body">
@@ -44,6 +44,7 @@
                                         <th>序号</th>
                                         <th>X坐标</th>
                                         <th>Y坐标</th>
+                                        <th>半径(不填默认50像素)</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -52,6 +53,7 @@
                                         <td><?php echo $k + 1;?></td>
                                         <td><input type="text" name="coordinatex[]" value="<?php echo $row['x'];?>"></td>
                                         <td><input type="text" name="coordinatey[]" value="<?php echo $row['y'];?>"></td>
+                                        <td><input type="text" name="radius[]" value="<?php echo isset($row['r']) ? $row['r'] : '';?>"></td>
                                     </tr>
                                     <?php endforeach;?>
                                 </tbody>

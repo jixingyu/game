@@ -129,6 +129,11 @@ class Spot extends Admin_Controller
                         $post['coordinate'][$key]['y'] = $value;
                     }
                 }
+                foreach ($post['radius'] as $key => $value) {
+                    if (!empty($value)) {
+                        $post['coordinate'][$key]['r'] = $value;
+                    }
+                }
                 $data['image']['coordinate'] = $post['coordinate'];
                 $post['coordinate'] = json_encode($post['coordinate']);
             }
@@ -180,7 +185,7 @@ class Spot extends Admin_Controller
                             $data['image']['image_mod'] = site_url($this->config->item('spot_image_path') . $imageMod['file_name']);
                         }
 
-                        unset($post['coordinatex'], $post['coordinatey']);
+                        unset($post['coordinatex'], $post['coordinatey'], $post['radius']);
                         if ($id) {
                             if (isset($post['image_ori']) && file_exists($upConfig['upload_path'] . $spotImage['image_ori'])) {
                                 unlink($upConfig['upload_path'] . $spotImage['image_ori']);

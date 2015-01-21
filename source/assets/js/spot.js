@@ -131,6 +131,11 @@ BasicGame.Game = function (game) {
     this.downImage;
     this.myLoader;
     this.currentImage;
+    this.defaultRadius = 20;
+    this.timeText;
+    this.remainTimer;
+    this.remainTime = 10;//TODOconfig.initial_time;
+    this.promptTimes = 0;
 };
 
 BasicGame.Game.prototype = {
@@ -149,7 +154,6 @@ BasicGame.Game.prototype = {
         this.add.sprite(170, 1000, 'add-time');
 
         this.circles = game.add.graphics(0, 0);
-        game.world.bringToTop(this.circles);
         this.nextLevel(true);
     },
 
@@ -158,6 +162,16 @@ BasicGame.Game.prototype = {
 
         if (this.simages.length > 0) {
             this.currentImage = this.simages.pop();
+            this.currentImage.coordinate = JSON.parse(this.currentImage.coordinate);
+            for (i = 0; i < this.currentImage.coordinate.length; i++) {
+                this.currentImage.coordinate[i].x = parseInt(this.currentImage.coordinate[i].x);
+                this.currentImage.coordinate[i].y = parseInt(this.currentImage.coordinate[i].y);
+                if (parseInt(this.currentImage.coordinate[i].r) > 0) {
+                    this.currentImage.coordinate[i].iradius = this.currentImage.coordinate[i].r;
+                } else {
+                    this.currentImage.coordinate[i].iradius = this.defaultRadius;
+                }
+            }
             this.myLoader.image('up', 'assets/spot/images/' + this.currentImage.image_ori, true);
             this.myLoader.image('down', 'assets/spot/images/' + this.currentImage.image_mod, true);
 
@@ -180,6 +194,9 @@ BasicGame.Game.prototype = {
         this.downImage.inputEnabled = true;
         this.downImage.events.onInputDown.add(this.check, this);
         this.circles.lineStyle(3, 0xff0000);
+        game.world.bringToTop(this.circles);
+        this.timeText = this.add.text(580, 1000, this.getRTime(), {font: "42px Arial", fill: "#ffffff"});
+        this.remainTimer = game.time.events.loop(Phaser.Timer.SECOND, this.updateTime, this);
     },
 
     imageLoaded: function() {
@@ -189,21 +206,74 @@ BasicGame.Game.prototype = {
         this.circles.lineStyle(3, 0xff0000);
     },
 
+    updateTime: function () {
+        this.remainTime--;
+        if (this.remainTime <= 0) {
+            //TODO gameover
+            game.time.events.remove(this.remainTimer);
+            this.timeText.setText('00:00');
+        } else {
+            this.timeText.setText(this.getRTime());
+        }
+    },
+
+    getRTime: function () {
+        minutes = Math.floor(this.remainTime / 60);
+        seconds = this.remainTime % 60;
+
+        if (minutes < 10) minutes = '0' + minutes;
+        if (seconds < 10) seconds = '0' + seconds;
+
+        return minutes + ':' + seconds;
+    },
+
     check: function (sprite, pointer) {
         for (i = 0; i < this.currentImage.coordinate.length; i++) {
-            if (this.math.distance(pointer.x, pointer.y, this.currentImage.coordinate[i].x, this.currentImage.coordinate[i].y) < 100) {
-                this.circles.drawCircle(this.currentImage.coordinate[i].x, 88 + this.currentImage.coordinate[i].y, 100);
-                this.circles.drawCircle(this.currentImage.coordinate[i].x, 548 + this.currentImage.coordinate[i].y, 100);
+            if ((this.math.distance(pointer.x, pointer.y, this.currentImage.coordinate[i].x, this.currentImage.coordinate[i].y + 88) < this.currentImage.coordinate[i].iradius) ||
+            (this.math.distance(pointer.x, pointer.y, this.currentImage.coordinate[i].x, this.currentImage.coordinate[i].y + 548) < this.currentImage.coordinate[i].iradius)) {
+                this.circles.drawCircle(this.currentImage.coordinate[i].x, 88 + this.currentImage.coordinate[i].y, this.currentImage.coordinate[i].iradius * 2);
+                this.circles.drawCircle(this.currentImage.coordinate[i].x, 548 + this.currentImage.coordinate[i].y, this.currentImage.coordinate[i].iradius * 2);
                 this.found++;
                 this.currentImage.coordinate.splice(i, 1);
+                this.remainTime += config.right_add_time;
                 if (this.found == 5) {
                     this.nextLevel(false);
-                    return;
                 }
+                return;
             }
 
         }
-        //减时间
+        this.remainTime -= config.wrong_sub_time;
+    },
+
+    prompt: function () {
+        if (this.promptTimes >= config.free_reminder) {
+            if (this.userPoints < config.reminder_points) {
+                alert('您的积分不够');
+                return;
+            } else {
+                this.userPoints -= config.reminder_points;
+            }
+        }
+        this.promptTimes++;
+        promptpoint = this.currentImage.pop();
+        this.circles.drawCircle(promptpoint.x, 88 + promptpoint.y, promptpoint.iradius * 2);
+        this.circles.drawCircle(promptpoint.x, 548 + promptpoint.y, promptpoint.iradius * 2);
+        this.found++;
+
+        if (this.found == 5) {
+            this.nextLevel(false);
+        }
+    },
+
+    addTime: function () {
+        if (this.userPoints < config.time_chunk_points) {
+            alert('您的积分不够');
+            return;
+        } else {
+            this.userPoints -= config.time_chunk_points;
+            this.remainTime += config.time_chunk;
+        }
     },
 
     update: function () {
