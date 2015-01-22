@@ -134,8 +134,9 @@ BasicGame.Game = function (game) {
     this.defaultRadius = 20;
     this.timeText;
     this.remainTimer;
-    this.remainTime = 10;//TODOconfig.initial_time;
+    this.remainTime = config.initial_time;
     this.promptTimes = 0;
+    this.ready = false;
 };
 
 BasicGame.Game.prototype = {
@@ -150,14 +151,15 @@ BasicGame.Game.prototype = {
         this.add.sprite(0, 0, 'header');
         this.add.sprite(0, 510, 'mid');
         this.add.sprite(0, 971, 'footer');
-        this.add.sprite(20, 1000, 'prompt');
-        this.add.sprite(170, 1000, 'add-time');
+        this.add.button(20, 1000, 'prompt', this.promptOnce, this);
+        this.add.button(170, 1000, 'add-time', this.addTime, this);
 
         this.circles = game.add.graphics(0, 0);
         this.nextLevel(true);
     },
 
     nextLevel: function (first) {
+        this.ready = false;
         this.currentLevel++;
 
         if (this.simages.length > 0) {
@@ -197,6 +199,7 @@ BasicGame.Game.prototype = {
         game.world.bringToTop(this.circles);
         this.timeText = this.add.text(580, 1000, this.getRTime(), {font: "42px Arial", fill: "#ffffff"});
         this.remainTimer = game.time.events.loop(Phaser.Timer.SECOND, this.updateTime, this);
+        this.ready = true;
     },
 
     imageLoaded: function() {
@@ -204,6 +207,7 @@ BasicGame.Game.prototype = {
         this.downImage.loadTexture('down');
         this.circles.clear();
         this.circles.lineStyle(3, 0xff0000);
+        this.ready = true;
     },
 
     updateTime: function () {
@@ -212,6 +216,7 @@ BasicGame.Game.prototype = {
             //TODO gameover
             game.time.events.remove(this.remainTimer);
             this.timeText.setText('00:00');
+            this.ready = false;
         } else {
             this.timeText.setText(this.getRTime());
         }
@@ -246,10 +251,13 @@ BasicGame.Game.prototype = {
         this.remainTime -= config.wrong_sub_time;
     },
 
-    prompt: function () {
+    promptOnce: function () {
+        if (!this.ready) {
+            return;
+        }
         if (this.promptTimes >= config.free_reminder) {
             if (this.userPoints < config.reminder_points) {
-                alert('您的积分不够');
+                sweetAlert('您的积分不够');
                 return;
             } else {
                 this.userPoints -= config.reminder_points;
@@ -267,8 +275,11 @@ BasicGame.Game.prototype = {
     },
 
     addTime: function () {
+        if (!this.ready) {
+            return;
+        }
         if (this.userPoints < config.time_chunk_points) {
-            alert('您的积分不够');
+            sweetAlert('您的积分不够');
             return;
         } else {
             this.userPoints -= config.time_chunk_points;

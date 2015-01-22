@@ -8,7 +8,8 @@
   <meta name="viewport" content="user-scalable=0, initial-scale=1, minimum-scale=1, maximum-scale=1, width=device-width, minimal-ui=1">
 
   <title><?php echo $title;?></title>
-
+  <link rel="stylesheet" href="assets/css/sweet-alert.css">
+  <script src="assets/js/sweet-alert.min.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js/phaser.min.js');?>"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js/ajax.js');?>"></script>
 </head>

@@ -1,5 +1,6 @@
 var game = new Phaser.Game(720, 1080, Phaser.AUTO, 'game');
 var horseNum = 8;
+var userPoints = 200;
 BasicGame = {
 
     /* Here we've just got some global level vars that persist regardless of State swaps */
@@ -100,9 +101,17 @@ BasicGame.Preloader.prototype = {
 
         this.load.setPreloadSprite(this.preloadBar);
 
+        this.load.image('menu-bg','assets/horserace/bg.jpg');
+        this.load.image('start','assets/horserace/start.png');
+        this.load.image('confirm','assets/horserace/confirm.png');
+        this.load.image('popup','assets/horserace/popup.png');
+        this.load.spritesheet('rank', 'assets/horserace/rank.png', 47, 47);
+        this.load.image('add','assets/horserace/add.png');
+        this.load.image('sub','assets/horserace/sub.png');
+
         for (i = 0; i < horseNum; i++) {
             hid = i + 1;
-            game.load.spritesheet('horse' + hid, 'assets/horserace/' + hid + '.png', 245, 120);
+            this.load.spritesheet('horse' + hid, 'assets/horserace/' + hid + '.png', 245, 120);
         }
 
         this.load.image('runway-begin','assets/horserace/begin.png');
@@ -129,16 +138,49 @@ myChips.rankPoints = [200,400,300];
 BasicGame.MainMenu = function (game) {
 
     this.music = null;
-    this.playButton = null;
+    this.selectedHorse = null;
+    this.betPoints = null;
+    this.popup;
+    this.ready = false;
+    this.rankButton = [];
 };
 
 BasicGame.MainMenu.prototype = {
 
     create: function () {
-        this.startGame();
-        // this.add.sprite(0, 0, 'titlepage');
 
-        // this.playButton = this.add.button(400, 600, 'playButton', this.startGame, this, 'buttonOver', 'buttonOut', 'buttonOver');
+        this.add.sprite(0, 0, 'menu-bg');
+        var horseX = 118;
+        var horseY = 210;
+        for (i = 0; i < horseNum; i++) {
+            var h = this.add.sprite(horseX, horseY, 'stand', i);
+            h.inputEnabled = true;
+            h.events.onInputDown.add(this.bet, this);
+            if (i % 2 == 0) {
+                horseX += 300;
+            } else {
+                horseX -= 300;
+                horseY += 200;
+            }
+        }
+        this.popup = this.add.group();
+        this.popup.create(game.world.centerX, game.world.centerY,'popup').anchor.setTo(0.5);
+        this.selectedHorse = this.add.text(265, 324, '', { font: "40px Arial", fill: "#ffffff" }, this.popup);
+        this.popup.visible = false;
+        rankButtonX = 224;
+        for (i = 0; i < 3; i++) {
+            this.rankButton[i] = this.popup.create(rankButtonX, 420, 'rank', 3 + i);
+            this.rankButton[i].inputEnabled = true;
+            this.rankButton[i].events.onInputDown.add(this.toggleRank, this);
+            this.rankButton[i].horseSelected = false;
+            rankButtonX += 108;
+        }
+        this.add.button(game.world.centerX, 750, 'confirm', this.closePopup, this, null, null, null, null, this.popup).anchor.setTo(0.5);
+        this.add.button(110, 630, 'sub', this.subPoints, this, null, null, null, null, this.popup).anchor.setTo(0.5);
+        this.add.button(610, 630, 'add', this.addPoints, this, null, null, null, null, this.popup).anchor.setTo(0.5);
+        this.betPoints = this.add.text(300, 600, chip, { font: "60px Arial", fill: "#000000" }, this.popup);
+
+        this.add.button(game.world.centerX, 1000, 'start', this.startGame, this).anchor.setTo(0.5, 0);
 
     },
 
@@ -148,32 +190,113 @@ BasicGame.MainMenu.prototype = {
 
     },
 
-    addRank: function (i, j) {
-        myChips.rank[i - 1] = j;
+    bet: function (sprite) {
+        var horseId = sprite.frame + 1;
+        this.selectedHorse.setText(horseId);
+        this.popup.visible = true;
     },
 
+    closePopup: function () {
+        this.popup.visible = false;
+        var myBet = +this.betPoints.text;
+        var horseId = +this.selectedHorse.text;
+        if (this.selectedRank && myBet) {
+            myChips.rank[this.selectedRank] = horseId;
+            myChips.rankPoints[this.selectedRank] = myBet;
+        }
+    },
+
+    toggleRank: function (sprite) {
+        var horseId = +this.selectedHorse.text;
+        var rankId = sprite.frame;
+        if (sprite.horseSelected) {
+            sprite.loadTexture('rank', sprite.frame + 3);
+
+            if (myChips.rank[rankId] == horseId) {
+                myChips.rank[rankId] = 0;
+            }
+        } else {
+            sprite.loadTexture('rank', sprite.frame - 3);
+
+            if (myChips.rank[rankId] > 0 && myChips.rank[rankId] != horseId) {
+                var _self = this;
+                sweetAlert({
+                    title: "确定要重新下注第" + (+rankId + 1) + "名吗?",
+                    text: "确定将会取消前次下注" + myChips.rank[rankId] + "为第" + (+rankId + 1) + "名!",
+                    type: "warning",
+                    showCancelButton: true,
+                    cancelButtonText: "取消",
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "确定",
+                    closeOnConfirm: true
+                }, function() {
+                    console.log(_self.selectedHorse.text);
+                });
+            }
+        }
+    },
+
+    selectRank: function (sprite) {
+        var index = sprite.frame - 3;
+        for (i = 0; i < 3; i ++) {
+            if (index != i && this.rankButton[i].horseSelected) {
+                this.rankButton[i].loadTexture('rank', this.rankButton[i].frame + 3);
+                myChips.rank[this.rankButton[i].horseSelected + 1] = 0;
+                break;
+            }
+        }
+    }
+
     addPoints: function (i, j) {
-        myChips.rankPoints[i - 1] += j;
+        if (userPoints < chip) {
+            sweetAlert('您的积分不够');
+            return;
+        } else {
+            this.betPoints.setText(+this.betPoints.text + chip);
+            userPoints -= chip;
+        }
+    },
+
+    subPoints: function () {
+        var myBet = +this.betPoints.text;
+        if (myBet >= chip) {
+            this.betPoints.setText(myBet - chip);
+            userPoints += chip;
+        } else if (myBet > 0) {
+            this.betPoints.setText(0);
+            userPoints += myBet;
+        }
     },
 
     startGame: function () {
 
         //  Ok, the Play Button has been clicked or touched, so let's stop the music (otherwise it'll carry on playing)
         // this.music.stop();
+        for (i = 0; i < myChips.rank.length; i ++) {
+            if (myChips.rank[i] > 0 && myChips.rankPoints[i] > 0) {
+                this.ready = true;
+            } else if (myChips.rank[i] == 0 && myChips.rankPoints[i] > 0) {
+                myChips.rankPoints[i] = 0;
+            }
+        }
 
-        var _self = this;
-        ajax({
-            url: '/horserace/start',
-            data: myChips,
-            onSuccess: function(data) {
-                var resp = JSON.parse(data);
-                if (resp.code == 0) {
-                    //  And start the actual game
-                    _self.state.start('Game', true, false, resp.data.rank);
-                }
-            },
-        });
-
+        if (!this.ready) {
+            sweetAlert('请先下注');
+            return;
+        } else {
+            var _self = this;
+            ajax({
+                url: '/horserace/start',
+                data: myChips,
+                onSuccess: function(data) {
+                    var resp = JSON.parse(data);
+                    if (resp.code == 0) {
+                        //  And start the actual game
+                        _self.state.start('Game', true, false, resp.data.rank);
+                    }
+                },
+            });
+        }
     }
 
 };

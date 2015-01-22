@@ -1,4 +1,4 @@
-var game = new Phaser.Game(720, 1080, Phaser.AUTO, 'game');
+var game = new Phaser.Game(720, 1080, Phaser.AUTO, 'game', null, false, false);
 var points = 500;
 BasicGame = {
 
@@ -244,7 +244,7 @@ BasicGame.Game.prototype = {
             } else {
                 points -= consumePoints;
                 if (points < 0) {
-                    alert('积分不够');
+                    sweetAlert('您的积分不够');
                     return;
                 }
                 this.pointsText.setText(points);
@@ -259,7 +259,7 @@ BasicGame.Game.prototype = {
             }
 
             if (todayTimes >= freeNum) {
-                alert('请登录');
+                sweetAlert('请登录');
                 return;
             }
 
