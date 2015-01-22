@@ -103,11 +103,14 @@ BasicGame.Preloader.prototype = {
 
         this.load.image('menu-bg','assets/horserace/bg.jpg');
         this.load.image('start','assets/horserace/start.png');
+        this.load.image('back','assets/horserace/back.png');
         this.load.image('confirm','assets/horserace/confirm.png');
         this.load.image('popup','assets/horserace/popup.png');
         this.load.spritesheet('rank', 'assets/horserace/rank.png', 47, 47);
         this.load.image('add','assets/horserace/add.png');
         this.load.image('sub','assets/horserace/sub.png');
+        this.load.image('gameover','assets/horserace/gameover.png');
+        this.load.image('light','assets/horserace/light.png');
 
         for (i = 0; i < horseNum; i++) {
             hid = i + 1;
@@ -132,8 +135,8 @@ BasicGame.Preloader.prototype = {
 };
 
 myChips = {};
-myChips.rank = [4,5,6];
-myChips.rankPoints = [200,400,300];
+myChips.rank = [0, 0, 0];
+myChips.rankPoints = [0, 0, 0];
 
 BasicGame.MainMenu = function (game) {
 
@@ -143,12 +146,27 @@ BasicGame.MainMenu = function (game) {
     this.popup;
     this.ready = false;
     this.rankButton = [];
+    this.selectedRank = null;
+    this.oldSelectedRank = null;
+    this.rankSprite = [];
+    this.isPopup = false;
 };
 
 BasicGame.MainMenu.prototype = {
 
-    create: function () {
+    init: function () {
+        this.selectedHorse = null;
+        this.betPoints = null;
+        this.ready = false;
+        this.rankButton = [];
+        this.selectedRank = null;
+        this.oldSelectedRank = null;
+        this.rankSprite = [];
+        this.isPopup = false;
+    },
 
+    create: function () {
+        game.world.setBounds(0, 0, 720, 1080);
         this.add.sprite(0, 0, 'menu-bg');
         var horseX = 118;
         var horseY = 210;
@@ -157,9 +175,9 @@ BasicGame.MainMenu.prototype = {
             h.inputEnabled = true;
             h.events.onInputDown.add(this.bet, this);
             if (i % 2 == 0) {
-                horseX += 300;
+                horseX += 310;
             } else {
-                horseX -= 300;
+                horseX -= 310;
                 horseY += 200;
             }
         }
@@ -172,7 +190,7 @@ BasicGame.MainMenu.prototype = {
             this.rankButton[i] = this.popup.create(rankButtonX, 420, 'rank', 3 + i);
             this.rankButton[i].inputEnabled = true;
             this.rankButton[i].events.onInputDown.add(this.toggleRank, this);
-            this.rankButton[i].horseSelected = false;
+            this.rankButton[i].rankId = i;
             rankButtonX += 108;
         }
         this.add.button(game.world.centerX, 750, 'confirm', this.closePopup, this, null, null, null, null, this.popup).anchor.setTo(0.5);
@@ -191,8 +209,22 @@ BasicGame.MainMenu.prototype = {
     },
 
     bet: function (sprite) {
+        if (this.isPopup) {
+            return;
+        }
+        this.selectedRank = null;
+        this.isPopup = true;
         var horseId = sprite.frame + 1;
         this.selectedHorse.setText(horseId);
+        this.betPoints.setText(chip);
+        for (i = 0; i < 3; i++) {
+            if (myChips.rank[i] == horseId) {
+                this.rankButton[i].loadTexture('rank', i);
+                this.selectedRank = this.oldSelectedRank = i + 1;
+                break;
+            }
+        }
+        game.world.bringToTop(this.popup);
         this.popup.visible = true;
     },
 
@@ -200,29 +232,47 @@ BasicGame.MainMenu.prototype = {
         this.popup.visible = false;
         var myBet = +this.betPoints.text;
         var horseId = +this.selectedHorse.text;
-        if (this.selectedRank && myBet) {
-            myChips.rank[this.selectedRank] = horseId;
-            myChips.rankPoints[this.selectedRank] = myBet;
+        if (this.oldSelectedRank && (this.oldSelectedRank != this.selectedRank || !myBet)) {
+            myChips.rank[this.oldSelectedRank - 1] = 0;
+            this.rankSprite[this.oldSelectedRank - 1].visible = false;
         }
+        if (this.selectedRank) {
+            this.rankButton[this.selectedRank - 1].loadTexture('rank', this.selectedRank + 2);
+            if (myBet) {
+                this.selectedRank--;
+                myChips.rank[this.selectedRank] = horseId;
+                myChips.rankPoints[this.selectedRank] = myBet;
+                var tempX = 110 + (horseId - 1) % 2 * 310;
+                var tempY = 338 + parseInt((horseId - 1) / 2) * 200;
+                if (!this.rankSprite[this.selectedRank]) {
+                    this.rankSprite[this.selectedRank] = this.add.group();
+                    this.rankSprite[this.selectedRank].create(0, 0, 'rank', this.selectedRank);
+                    this.add.text(80, 0, myBet, { font: "40px Arial", fill: "#00CC00" }, this.rankSprite[this.selectedRank]);
+                    this.rankSprite[this.selectedRank].x = tempX;
+                    this.rankSprite[this.selectedRank].y = tempY;
+                } else {
+                    this.rankSprite[this.selectedRank].x = tempX;
+                    this.rankSprite[this.selectedRank].y = tempY;
+                    this.rankSprite[this.selectedRank].getAt(1).setText(myBet);
+                    this.rankSprite[this.selectedRank].visible = true;
+                }
+            }
+        }
+        this.isPopup = false;
     },
 
     toggleRank: function (sprite) {
         var horseId = +this.selectedHorse.text;
-        var rankId = sprite.frame;
-        if (sprite.horseSelected) {
-            sprite.loadTexture('rank', sprite.frame + 3);
-
-            if (myChips.rank[rankId] == horseId) {
-                myChips.rank[rankId] = 0;
-            }
+        var rankId = sprite.rankId;
+        if (this.selectedRank && this.selectedRank == rankId + 1) {
+            sprite.loadTexture('rank', rankId + 3);
+            this.selectedRank = null;
         } else {
-            sprite.loadTexture('rank', sprite.frame - 3);
-
-            if (myChips.rank[rankId] > 0 && myChips.rank[rankId] != horseId) {
+            if (myChips.rank[rankId] && myChips.rank[rankId] != horseId) {
                 var _self = this;
                 sweetAlert({
-                    title: "确定要重新下注第" + (+rankId + 1) + "名吗?",
-                    text: "确定将会取消前次下注" + myChips.rank[rankId] + "为第" + (+rankId + 1) + "名!",
+                    title: "确定要重新下注第" + (rankId + 1) + "名吗?",
+                    text: "确定将会取消前次下注" + myChips.rank[rankId] + "号马为第" + (rankId + 1) + "名!",
                     type: "warning",
                     showCancelButton: true,
                     cancelButtonText: "取消",
@@ -230,22 +280,23 @@ BasicGame.MainMenu.prototype = {
                     confirmButtonText: "确定",
                     closeOnConfirm: true
                 }, function() {
-                    console.log(_self.selectedHorse.text);
+                    myChips.rank[rankId] = 0;
+                    _self.rankSprite[sprite.rankId].visible = false;
+                    _self.selectRank(sprite);
                 });
+            } else {
+                this.selectRank(sprite);
             }
         }
     },
 
     selectRank: function (sprite) {
-        var index = sprite.frame - 3;
-        for (i = 0; i < 3; i ++) {
-            if (index != i && this.rankButton[i].horseSelected) {
-                this.rankButton[i].loadTexture('rank', this.rankButton[i].frame + 3);
-                myChips.rank[this.rankButton[i].horseSelected + 1] = 0;
-                break;
-            }
+        if (this.selectedRank) {
+            this.rankButton[this.selectedRank - 1].loadTexture('rank', this.selectedRank + 2);
         }
-    }
+        sprite.loadTexture('rank', sprite.rankId);
+        this.selectedRank = sprite.rankId + 1;
+    },
 
     addPoints: function (i, j) {
         if (userPoints < chip) {
@@ -269,6 +320,9 @@ BasicGame.MainMenu.prototype = {
     },
 
     startGame: function () {
+        if (this.isPopup) {
+            return;
+        }
 
         //  Ok, the Play Button has been clicked or touched, so let's stop the music (otherwise it'll carry on playing)
         // this.music.stop();
@@ -352,7 +406,6 @@ BasicGame.Game.prototype = {
         for (i = 0; i < horseNum; i++) {
             // this.balls[id] = game.add.sprite(10, by, 'balls', id);
             this.players[i] = game.add.sprite(this.startX, y + 107 * (this.ranklist[i] - 1), 'horse' + this.ranklist[i], 0);
-            this.players[i].horseId = this.ranklist[i];
             // by += 20;
         }
         this.runStart();
@@ -360,7 +413,7 @@ BasicGame.Game.prototype = {
 
     runStart: function () {
         var duration = this.rndDuration(7000, 12000);
-        // var duration = this.rndDuration(1000, 2000);
+        var duration = this.rndDuration(1000, 2000);//TODO
 
         cameraMoveTime = duration[0];
 
@@ -377,10 +430,19 @@ BasicGame.Game.prototype = {
                 // btemptween.to({ x: 10 + bSectionDistance * (tweenI + 1) }, section[tweenI], Phaser.Easing.Linear.None);
                 ptemptween.to({ x: this.startX + pSectionDistance * (tweenI + 1) }, section[tweenI], Phaser.Easing.Linear.None);
             }
-            ptemptween.to({ x: game.world.width }, 2000, Phaser.Easing.Linear.None);
             // btween[i] = btemptween;
-            ptween[i] = ptemptween;
+            if (i == 7) {
+                ptemptween.chain(game.add.tween(this.players[i]).to({ x: game.world.width }, 2000, Phaser.Easing.Linear.None));
+                ptemptween.onComplete.add(function() {
+                    game.time.events.add(1000, this.gameover, this);
+                }, this);
+                ptween[i] = ptemptween;
+            } else {
+                ptemptween.to({ x: game.world.width }, 2000, Phaser.Easing.Linear.None);
+                ptween[i] = ptemptween;
+            }
         }
+
         for (i = 0; i < horseNum; i++) {
             this.players[i].animations.add('run');
             this.players[i].animations.play('run', 12, true);
@@ -394,10 +456,36 @@ BasicGame.Game.prototype = {
     runStop: function () {
         for (i = 0; i < horseNum; i++) {
             if (!this.players[i].stopRun && this.players[i].x == this.startX + this.runLength) {
-                this.players[i].loadTexture('stand', this.players[i].horseId - 1);
+                this.players[i].loadTexture('stand', this.ranklist[i] - 1);
                 this.players[i].stopRun = true;
             }
         }
+    },
+
+    gameover: function () {
+        var graphics = game.add.graphics(0, 0);
+        graphics.alpha = 0.7;
+        graphics.beginFill(0x000000);
+        graphics.drawRect(this.runwayLength - 720, 0, 720, 1080);
+        game.world.bringToTop(graphics);
+        graphics.endFill();
+
+        var endgroup = this.add.group();
+        endgroup.create(this.runwayLength - 350, game.world.centerY, 'gameover').anchor.setTo(0.5);
+        if (this.ranklist[1] == myChips.rank[1]) {
+            endgroup.create(this.runwayLength - 660, game.world.centerY - 250, 'light');
+        }
+        if (this.ranklist[0] == myChips.rank[0]) {
+            endgroup.create(this.runwayLength - 480, game.world.centerY - 320, 'light');
+        }
+        if (this.ranklist[2] == myChips.rank[2]) {
+            endgroup.create(this.runwayLength - 320, game.world.centerY - 230, 'light');
+        }
+        endgroup.create(this.runwayLength - 600, game.world.centerY - 150, 'stand', this.ranklist[1] - 1);
+        endgroup.create(this.runwayLength - 420, game.world.centerY - 220, 'stand', this.ranklist[0] - 1);
+        endgroup.create(this.runwayLength - 260, game.world.centerY - 130, 'stand', this.ranklist[2] - 1);
+
+        this.add.button(this.runwayLength - 490, game.world.centerY + 200, 'back', function(){this.state.start('MainMenu', true, false);}, this);
     },
 
     update: function () {
