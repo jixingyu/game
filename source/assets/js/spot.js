@@ -136,6 +136,7 @@ BasicGame.Game = function (game) {
     this.remainTimer;
     this.remainTime = config.initial_time;
     this.promptTimes = 0;
+    this.nextText = null;
     this.ready = false;
 };
 
@@ -155,11 +156,31 @@ BasicGame.Game.prototype = {
         this.add.button(170, 1000, 'add-time', this.addTime, this);
 
         this.circles = game.add.graphics(0, 0);
-        this.nextLevel(true);
+        this.nextLevel();
     },
 
-    nextLevel: function (first) {
+    nextLevel: function () {
         this.ready = false;
+        if (this.currentLevel > 0) {
+            if (!this.nextText) {
+                this.nextText = game.add.text(game.world.centerX, game.world.centerY, '下一关', {font: "bold 100px Arial", fill: "#3C9600"});
+                this.nextText.anchor.setTo(0.5);
+                this.nextText.scale.set(0);
+            } else {
+                this.nextText.scale.set(0);
+                this.nextText.visible = true;
+                game.world.bringToTop(this.nextText);
+            }
+            game.add.tween(this.nextText.scale).to({ x: 1, y: 1 }, 1000, Phaser.Easing.Sinusoidal.Out, true).onComplete.add(function () {
+                this.nextText.visible = false;
+                this.goNext();
+            }, this);
+        } else {
+            this.goNext();
+        }
+    },
+
+    goNext: function () {
         this.currentLevel++;
 
         if (this.simages.length > 0) {
@@ -177,7 +198,7 @@ BasicGame.Game.prototype = {
             this.myLoader.image('up', 'assets/spot/images/' + this.currentImage.image_ori, true);
             this.myLoader.image('down', 'assets/spot/images/' + this.currentImage.image_mod, true);
 
-            if (first) {
+            if (this.currentLevel == 1) {
                 this.myLoader.onLoadComplete.addOnce(this.firstLoaded, this);
                 this.myLoader.start();
             } else {
@@ -242,7 +263,7 @@ BasicGame.Game.prototype = {
                 this.currentImage.coordinate.splice(i, 1);
                 this.remainTime += config.right_add_time;
                 if (this.found == 5) {
-                    this.nextLevel(false);
+                    this.nextLevel();
                 }
                 return;
             }
@@ -270,7 +291,7 @@ BasicGame.Game.prototype = {
         this.found++;
 
         if (this.found == 5) {
-            this.nextLevel(false);
+            this.nextLevel();
         }
     },
 

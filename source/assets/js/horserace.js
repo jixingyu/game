@@ -1,18 +1,7 @@
 var game = new Phaser.Game(720, 1080, Phaser.AUTO, 'game');
 var horseNum = 8;
 var userPoints = 200;
-BasicGame = {
-
-    /* Here we've just got some global level vars that persist regardless of State swaps */
-    // score: 0,
-
-    /* If the music in your game needs to play through-out a few State swaps, then you could reference it here */
-    // music: null,
-
-    /* Your game can check BasicGame.orientated in internal loops to know if it should pause or not */
-    // orientated: false
-
-};
+BasicGame = {};
 
 BasicGame.Boot = function (game) {
 };
@@ -46,11 +35,8 @@ BasicGame.Boot.prototype = {
     },
 
     preload: function () {
-
-        //  Here we load the assets required for our preloader (in this case a background and a loading bar)
         this.load.image('preloaderBar', 'assets/preloader.png');
         this.load.image('preloaderbar-bottom', 'assets/preloader-bottom.png');
-
     },
 
     create: function () {
@@ -58,31 +44,6 @@ BasicGame.Boot.prototype = {
         this.state.start('Preloader');
 
     },
-
-    // gameResized: function (width, height) {
-
-    //     //  This could be handy if you need to do any extra processing if the game resizes.
-    //     //  A resize could happen if for example swapping orientation on a device or resizing the browser window.
-    //     //  Note that this callback is only really useful if you use a ScaleMode of RESIZE and place it inside your main game state.
-
-    // },
-
-    // enterIncorrectOrientation: function () {
-
-    //     BasicGame.orientated = false;
-
-    //     document.getElementById('orientation').style.display = 'block';
-
-    // },
-
-    // leaveIncorrectOrientation: function () {
-
-    //     BasicGame.orientated = true;
-
-    //     document.getElementById('orientation').style.display = 'none';
-
-    // }
-
 };
 
 BasicGame.Preloader = function (game) {
@@ -144,25 +105,38 @@ BasicGame.MainMenu = function (game) {
     this.selectedHorse = null;
     this.betPoints = null;
     this.popup;
-    this.ready = false;
     this.rankButton = [];
+    this.rankSprite = [];
     this.selectedRank = null;
     this.oldSelectedRank = null;
-    this.rankSprite = [];
+    this.ready = false;
     this.isPopup = false;
 };
 
 BasicGame.MainMenu.prototype = {
 
     init: function () {
-        this.selectedHorse = null;
-        this.betPoints = null;
-        this.ready = false;
+        if (this.selectedHorse) {
+            this.selectedHorse.destroy();
+        }
+        if (this.betPoints) {
+            this.betPoints.destroy();
+        }
+        if (this.popup) {
+            this.popup.destroy();
+        }
         this.rankButton = [];
+        if (this.rankSprite.length > 0) {
+            for (i = 0; i < this.rankSprite.length; i++) {
+                this.rankSprite[i].destroy();
+            }
+        }
+        this.ready = false;
         this.selectedRank = null;
         this.oldSelectedRank = null;
-        this.rankSprite = [];
-        this.isPopup = false;
+
+        myChips.rank = [0, 0, 0];
+        myChips.rankPoints = [0, 0, 0];
     },
 
     create: function () {
@@ -198,14 +172,15 @@ BasicGame.MainMenu.prototype = {
         this.add.button(610, 630, 'add', this.addPoints, this, null, null, null, null, this.popup).anchor.setTo(0.5);
         this.betPoints = this.add.text(300, 600, chip, { font: "60px Arial", fill: "#000000" }, this.popup);
 
+        for (i = 0; i < 3; i++) {
+            this.rankSprite[i] = this.add.group();
+        }
+
         this.add.button(game.world.centerX, 1000, 'start', this.startGame, this).anchor.setTo(0.5, 0);
 
     },
 
     update: function () {
-
-        //  Do some nice funky main menu effect here
-
     },
 
     bet: function (sprite) {
@@ -244,8 +219,7 @@ BasicGame.MainMenu.prototype = {
                 myChips.rankPoints[this.selectedRank] = myBet;
                 var tempX = 110 + (horseId - 1) % 2 * 310;
                 var tempY = 338 + parseInt((horseId - 1) / 2) * 200;
-                if (!this.rankSprite[this.selectedRank]) {
-                    this.rankSprite[this.selectedRank] = this.add.group();
+                if (this.rankSprite[this.selectedRank].length == 0) {
                     this.rankSprite[this.selectedRank].create(0, 0, 'rank', this.selectedRank);
                     this.add.text(80, 0, myBet, { font: "40px Arial", fill: "#00CC00" }, this.rankSprite[this.selectedRank]);
                     this.rankSprite[this.selectedRank].x = tempX;
@@ -345,7 +319,6 @@ BasicGame.MainMenu.prototype = {
                 onSuccess: function(data) {
                     var resp = JSON.parse(data);
                     if (resp.code == 0) {
-                        //  And start the actual game
                         _self.state.start('Game', true, false, resp.data.rank);
                     }
                 },
@@ -371,11 +344,6 @@ BasicGame.Game.prototype = {
 
     init: function (ranklist) {
         this.ranklist = ranklist;
-        // if (rank1 && ranklist[0] == rank1) {
-        //     console.log('win');
-        // } else {
-        //     console.log('lose');
-        // }
     },
 
     create: function () {
@@ -402,35 +370,26 @@ BasicGame.Game.prototype = {
         game.add.text(530, 100, '    ' + myChips['rank'][2] + '号马\n下注' + myChips['rankPoints'][2] + '积分', style, this.panel);
 
         var y = 183;
-        // var by = 10;
         for (i = 0; i < horseNum; i++) {
-            // this.balls[id] = game.add.sprite(10, by, 'balls', id);
             this.players[i] = game.add.sprite(this.startX, y + 107 * (this.ranklist[i] - 1), 'horse' + this.ranklist[i], 0);
-            // by += 20;
         }
         this.runStart();
     },
 
     runStart: function () {
         var duration = this.rndDuration(7000, 12000);
-        var duration = this.rndDuration(1000, 2000);//TODO
 
         cameraMoveTime = duration[0];
 
-        // var bSectionDistance = 300 / 4;//TODO
         var pSectionDistance = this.runLength / 4;
-        // var btween = [];
         var ptween = [];
         tweenLimit = 4;
         for (i = 0; i < horseNum; i++) {
             section = this.rndSection(duration[i], this.runLength, tweenLimit);
-            // var btemptween = game.add.tween(this.balls[i].cameraOffset).to({ x: 10 + bSectionDistance }, section[0], Phaser.Easing.Linear.None);
             var ptemptween = game.add.tween(this.players[i]).to({ x: this.startX + pSectionDistance }, section[0], Phaser.Easing.Linear.None);
             for (tweenI = 1; tweenI < tweenLimit; tweenI++) {
-                // btemptween.to({ x: 10 + bSectionDistance * (tweenI + 1) }, section[tweenI], Phaser.Easing.Linear.None);
                 ptemptween.to({ x: this.startX + pSectionDistance * (tweenI + 1) }, section[tweenI], Phaser.Easing.Linear.None);
             }
-            // btween[i] = btemptween;
             if (i == 7) {
                 ptemptween.chain(game.add.tween(this.players[i]).to({ x: game.world.width }, 2000, Phaser.Easing.Linear.None));
                 ptemptween.onComplete.add(function() {
@@ -446,20 +405,9 @@ BasicGame.Game.prototype = {
         for (i = 0; i < horseNum; i++) {
             this.players[i].animations.add('run');
             this.players[i].animations.play('run', 12, true);
-            // btween[i].start();
-            // ptween[i].onComplete.add(this.runStop, this);
             ptween[i].start();
         }
         game.add.tween(game.camera).to({ x: 1440 }, cameraMoveTime, Phaser.Easing.Linear.None, true);
-    },
-
-    runStop: function () {
-        for (i = 0; i < horseNum; i++) {
-            if (!this.players[i].stopRun && this.players[i].x == this.startX + this.runLength) {
-                this.players[i].loadTexture('stand', this.ranklist[i] - 1);
-                this.players[i].stopRun = true;
-            }
-        }
     },
 
     gameover: function () {
@@ -485,13 +433,10 @@ BasicGame.Game.prototype = {
         endgroup.create(this.runwayLength - 420, game.world.centerY - 220, 'stand', this.ranklist[0] - 1);
         endgroup.create(this.runwayLength - 260, game.world.centerY - 130, 'stand', this.ranklist[2] - 1);
 
-        this.add.button(this.runwayLength - 490, game.world.centerY + 200, 'back', function(){this.state.start('MainMenu', true, false);}, this);
+        this.add.button(this.runwayLength - 490, game.world.centerY + 200, 'back', function(){this.state.start('MainMenu');}, this);
     },
 
     update: function () {
-
-        //  Honestly, just about anything could go here. It's YOUR game after all. Eat your heart out!
-
     },
 
     rndDuration: function (min, max) {
@@ -546,12 +491,9 @@ BasicGame.Game.prototype = {
 
 };
 
-//  Add the States your game has.
-//  You don't have to do this in the html, it could be done in your Boot state too, but for simplicity I'll keep it here.
 game.state.add('Boot', BasicGame.Boot);
 game.state.add('Preloader', BasicGame.Preloader);
 game.state.add('MainMenu',BasicGame.MainMenu);
 game.state.add('Game', BasicGame.Game);
 
-//  Now start the Boot state.
 game.state.start('Boot');

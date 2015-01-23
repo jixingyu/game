@@ -1,6 +1,6 @@
-listenSwipe(function(direction) {
-	console.log(direction);
-});
+// listenSwipe(function(direction) {
+// 	console.log(direction);
+// });
 
 function listenSwipe(callback) {
 	var eventDuration;
@@ -42,3 +42,5 @@ function listenSwipe(callback) {
 		}
 	}, this);
 };
+
+
