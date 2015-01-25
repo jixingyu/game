@@ -79,6 +79,7 @@ BasicGame.Preloader.prototype = {
         this.load.image('footer','assets/spot/footer.png');
         this.load.image('prompt','assets/spot/prompt.png');
         this.load.image('add-time','assets/spot/add-time.png');
+        this.load.image('next','assets/spot/next.png');
 
         this.load.json('simages', '/spot/images');
     },
@@ -153,7 +154,7 @@ BasicGame.Game.prototype = {
         this.add.sprite(0, 510, 'mid');
         this.add.sprite(0, 971, 'footer');
         this.add.button(20, 1000, 'prompt', this.promptOnce, this);
-        this.add.button(170, 1000, 'add-time', this.addTime, this);
+        this.add.button(205, 1000, 'add-time', this.addTime, this);
 
         this.circles = game.add.graphics(0, 0);
         this.nextLevel();
@@ -163,7 +164,7 @@ BasicGame.Game.prototype = {
         this.ready = false;
         if (this.currentLevel > 0) {
             if (!this.nextText) {
-                this.nextText = game.add.text(game.world.centerX, game.world.centerY, '下一关', {font: "bold 100px Arial", fill: "#3C9600"});
+                this.nextText = this.add.sprite(game.world.centerX, game.world.centerY, 'next');
                 this.nextText.anchor.setTo(0.5);
                 this.nextText.scale.set(0);
             } else {
@@ -171,7 +172,7 @@ BasicGame.Game.prototype = {
                 this.nextText.visible = true;
                 game.world.bringToTop(this.nextText);
             }
-            game.add.tween(this.nextText.scale).to({ x: 1, y: 1 }, 1000, Phaser.Easing.Sinusoidal.Out, true).onComplete.add(function () {
+            game.add.tween(this.nextText.scale).to({ x: 2, y: 2 }, 1000, Phaser.Easing.Sinusoidal.Out, true).onComplete.add(function () {
                 this.nextText.visible = false;
                 this.goNext();
             }, this);
@@ -218,7 +219,7 @@ BasicGame.Game.prototype = {
         this.downImage.events.onInputDown.add(this.check, this);
         this.circles.lineStyle(3, 0xff0000);
         game.world.bringToTop(this.circles);
-        this.timeText = this.add.text(580, 1000, this.getRTime(), {font: "42px Arial", fill: "#ffffff"});
+        this.timeText = this.add.text(595, 1005, this.getRTime(), {font: "42px Arial", fill: "#ffffff"});
         this.remainTimer = game.time.events.loop(Phaser.Timer.SECOND, this.updateTime, this);
         this.ready = true;
     },
@@ -253,7 +254,7 @@ BasicGame.Game.prototype = {
         return minutes + ':' + seconds;
     },
 
-    check: function (sprite, pointer) {
+    check: function (sprite, pointer) {this.nextLevel();return;
         for (i = 0; i < this.currentImage.coordinate.length; i++) {
             if ((this.math.distance(pointer.x, pointer.y, this.currentImage.coordinate[i].x, this.currentImage.coordinate[i].y + 88) < this.currentImage.coordinate[i].iradius) ||
             (this.math.distance(pointer.x, pointer.y, this.currentImage.coordinate[i].x, this.currentImage.coordinate[i].y + 548) < this.currentImage.coordinate[i].iradius)) {

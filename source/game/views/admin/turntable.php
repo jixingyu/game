@@ -19,7 +19,7 @@
                             积分
                         </p>
                         <p>
-                            游戏介绍：
+                            游戏说明：
                             <textarea class="form-control" name="description" rows="3"><?php echo $config['description'];?></textarea>
                         </p>
                     </div>

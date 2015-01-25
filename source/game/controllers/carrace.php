@@ -16,8 +16,8 @@ class Carrace extends Front_Controller
     public function index()
     {
         $config = $this->getConfig();
-    	$data = array(
-            'title' => '赛车',
+        $data = array(
+            'title' => '赛马',
             'chip'  => $config['chip'],
         );
 
@@ -33,11 +33,12 @@ class Carrace extends Front_Controller
         $playRank = array(1,2,3);
         $rank = array(1,2,3,4,5,6,7,8);
         $rankPoints = array();
+        $postR = $this->input->post('rank');
+        $postP = $this->input->post('rankPoints');
         foreach ($playRank as $rankK) {
-            $tmp = intval($this->input->post('rank' . $rankK));
-            if ($tmp) {
-                $rankList[$rankK] = $tmp;
-                $rankPoints[$rankK] = intval($this->input->post('rankPoints' . $rankK));
+            if (!empty($postR[$rankK - 1])) {
+                $rankList[$rankK] = intval($postR[$rankK - 1]);
+                $rankPoints[$rankK] = intval($postP[$rankK - 1]);
             }
         }
         if (empty($rankList)) {
@@ -126,6 +127,7 @@ class Carrace extends Front_Controller
                     $isRandom = 0;
                     $updPlayData['cont_win_num'] = $playData['cont_win_num'] + 1;
                     $updPlayData['lose_num'] = 0;
+                    $updPlayData['lose_points'] = 0;
                     $points += $result['win'];
                     break;
                 }
@@ -167,9 +169,9 @@ class Carrace extends Front_Controller
         // 计算积分 remote $points TODO
 
         // 0：谢谢参与
-    	$this->response(array(
-    		'rank'  => $rank
-		));
+        $this->response(array(
+            'rank'  => $rank
+        ));
     }
 
     private function randRank($playRank, $config, $rank, $rankList, $rankPoints, $rankK = false)
@@ -177,12 +179,14 @@ class Carrace extends Front_Controller
         $len = count($rank);
         $tmp = array();
         $win = 0;
+        if ($rankK) {
+            $id = $rankList[$rankK];
+            unset($rank[$id - 1]);
+        }
 
         for ($i = 1; $i < $len; $i++) {
             $randomKey = array_rand($rank, 1);
             if ($i == $rankK) {
-                $id = $rankList[$i];
-                unset($rank[$id - 1]);
                 $tmp[] = $id;
                 $win += $rankPoints[$i] * ($config['multiple'][$i] + 2);
             } elseif (isset($rankList[$i]) && $rankList[$i] == $randomKey + 1 &&
@@ -229,3 +233,4 @@ class Carrace extends Front_Controller
         }
     }
 }
+

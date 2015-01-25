@@ -41,6 +41,10 @@
                             <input type="text" name="max_time_chunk" value="<?php echo $config['max_time_chunk'];?>">
                             次
                         </p>
+                        <p>
+                            游戏说明：
+                            <textarea class="form-control" name="description" rows="3"><?php echo $config['description'];?></textarea>
+                        </p>
                     </div>
                 </div>
 

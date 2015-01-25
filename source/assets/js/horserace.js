@@ -332,7 +332,6 @@ BasicGame.MainMenu.prototype = {
 BasicGame.Game = function (game) {
     this.ranklist;
     this.players = [];
-    this.balls = [];
     this.panel;
     this.runwayLength = 2160;
     this.runLength = 1800;
@@ -365,9 +364,21 @@ BasicGame.Game.prototype = {
         this.panel.cameraOffset.y = 0;
 
         var style = { font: "23px Arial", fill: "#000000" };
-        game.add.text(80, 100, '    ' + myChips['rank'][0] + '号马\n下注' + myChips['rankPoints'][0] + '积分', style, this.panel);
-        game.add.text(300, 100, '    ' + myChips['rank'][1] + '号马\n下注' + myChips['rankPoints'][1] + '积分', style, this.panel);
-        game.add.text(530, 100, '    ' + myChips['rank'][2] + '号马\n下注' + myChips['rankPoints'][2] + '积分', style, this.panel);
+        if (myChips['rank'][0]) {
+            game.add.text(80, 100, '    ' + myChips['rank'][0] + '号马\n下注' + myChips['rankPoints'][0] + '积分', style, this.panel);
+        } else {
+            game.add.text(110, 120, '未下注', style, this.panel);
+        }
+        if (myChips['rank'][1]) {
+            game.add.text(300, 100, '    ' + myChips['rank'][1] + '号马\n下注' + myChips['rankPoints'][1] + '积分', style, this.panel);
+        } else {
+            game.add.text(330, 120, '未下注', style, this.panel);
+        }
+        if (myChips['rank'][2]) {
+            game.add.text(530, 100, '    ' + myChips['rank'][2] + '号马\n下注' + myChips['rankPoints'][2] + '积分', style, this.panel);
+        } else {
+            game.add.text(560, 120, '未下注', style, this.panel);
+        }
 
         var y = 183;
         for (i = 0; i < horseNum; i++) {
@@ -458,7 +469,7 @@ BasicGame.Game.prototype = {
                 }
             } while (!flag);
         }
-        array.sort(function(x,y){return x-y}); 
+        array.sort(function(x,y){return x-y});
         return array;
     },
 

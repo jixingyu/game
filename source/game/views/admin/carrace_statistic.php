@@ -10,7 +10,7 @@
     <div class="col-md-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                赛马
+                赛车
             </div>
             <!-- /.panel-heading -->
             <div class="panel-body">
