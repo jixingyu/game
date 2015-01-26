@@ -15,6 +15,12 @@ class Turntable extends Front_Controller
         parent::__construct();
     }
 
+    public function test()
+    {
+        $this->load->library('szstage');
+        var_dump($this->szstage->token());exit;
+    }
+
     public function index()
     {
         $config = $this->getConfig();
