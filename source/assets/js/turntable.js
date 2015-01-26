@@ -1,4 +1,4 @@
-var game = new Phaser.Game(720, 1080, Phaser.AUTO, 'game', null, false, false);
+var game = new Phaser.Game(360, 540, Phaser.AUTO, 'game');
 var points = 500;
 BasicGame = {
 
@@ -59,7 +59,8 @@ BasicGame.Preloader.prototype = {
 
     preload: function () {
         this.add.sprite(100, 500, 'preloaderbar-bottom');
-        this.preloadBar = this.add.sprite(106.5, 513.5, 'preloaderBar');
+        this.preloadBar = this.add.sprite(game.world.centerX, game.world.centerY, 'preloaderBar');
+        this.preloadBar.anchor.setTo(0.5);
 
         this.load.setPreloadSprite(this.preloadBar);
 
@@ -130,14 +131,14 @@ BasicGame.Game.prototype = {
         var turnGroup = game.add.group();
         var turntableCache = this.cache.getImage('turntable');
         circleX = game.width / 2;
-        circleY = 180 + turntableCache.height / 2;
+        circleY = 90 + turntableCache.height / 2;
         this.turntable = turnGroup.create(circleX, circleY, 'turntable');
-        this.turntable.anchor.setTo(0.5,0.5);
+        this.turntable.anchor.setTo(0.5);
 
-        var midPannel = turnGroup.create(circleX - 184, circleY - 247, 'mid-pannel');
+        var midPannel = turnGroup.create(circleX - 92, circleY - 123, 'mid-pannel');
 
         var lotteryButton = game.add.button(circleX, circleY, 'lottery', this.lottery, this);
-        lotteryButton.anchor.setTo(0.5,0.5);
+        lotteryButton.anchor.setTo(0.5);
         turnGroup.add(lotteryButton);
 
         this.remainNum = 0;
@@ -153,47 +154,41 @@ BasicGame.Game.prototype = {
             this.remainNum = freeNum - todayTimes;
         }
 
-        this.costText = game.add.text(game.world.centerX, circleY + 130, '', { font: "32px Arial", fill: "#ffffff", align: "center" }, turnGroup);
+        this.costText = game.add.text(game.world.centerX, circleY + 65, '', { font: "16px Arial", fill: "#ffffff", align: "center" }, turnGroup);
         this.costText.anchor.setTo(0.5);
         this.showCost();
 
-        var nickname = game.add.text(game.world.centerX, 40, '王小明', { font: "40px Arial", fill: "#000000"}, turnGroup);
+        var nickname = game.add.text(game.world.centerX, 20, '王小明', { font: "20px Arial", fill: "#000000"}, turnGroup);
         nickname.anchor.setTo(0.5, 0);
-        this.pointsText = game.add.text(600, 40, points, { font: "40px Arial", fill: "#000000"}, turnGroup);
+        this.pointsText = game.add.text(280, 20, points, { font: "20px Arial", fill: "#000000"}, turnGroup);
 
         desc = desc.replace(/###/g,"\n");
-        descText = game.add.text(30, 945, desc, { font: "25px Arial", fill: "#000000" });
-        descY = 880;
-        game.add.sprite(3, descY, 'desc-header');
-        descY += 61;
-        for (i = 1; i <= Math.ceil(descText.getLocalBounds().height / 17); i++) {
-            game.add.sprite(3, descY, 'desc-body');
-            descY += 17;
+        descText = game.add.text(22, 472, desc, { font: "20px Arial", fill: "#000000" });
+        descY = 440;
+        game.add.sprite(10, descY, 'desc-header');
+        descY += 31;
+        for (i = 1; i <= Math.ceil(descText.getLocalBounds().height / 9); i++) {
+            game.add.sprite(10, descY, 'desc-body');
+            descY += 9;
         }
-        game.add.sprite(3, descY, 'desc-footer');
-        // descPanel.scale.y = (descText.getLocalBounds().height + 100) / 331;
+        game.add.sprite(10, descY, 'desc-footer');
         game.world.bringToTop(descText);
 
-        // descText.inputEnabled = true;
-        // descText.input.enableDrag();
-        // descText.input.allowHorizontalDrag = false;
-        // descPanel = new Phaser.Rectangle(100, 880, 10, descText.getLocalBounds().height);game.debug.geom(descPanel,'#000000');
-
-        if (descText.getLocalBounds().height > 80) {
-            var myHeight = 1000 + descText.getLocalBounds().height;
+        if (descText.getLocalBounds().height > 40) {
+            var myHeight = 500 + descText.getLocalBounds().height;
         } else {
-            var myHeight = 1080;
+            var myHeight = 540;
         }
-        game.world.setBounds(0, 0, 720, myHeight);
+        game.world.setBounds(0, 0, 360, myHeight);
         game.inputEnabled = true;
         game.input.onDown.add(this.beginScroll, this);
 
         // gameover group
         this.gameoverGroup = game.add.group();
         this.gameoverGroup.visible = false;
-        var style = { font: "50px Arial", fill: "#0000FF", align: "center" };
+        var style = { font: "bold 25px Arial", fill: "#0000FF", align: "center" };
 
-        this.gameoverText = game.add.text(game.world.centerX, 140, '', style, this.gameoverGroup);
+        this.gameoverText = game.add.text(game.world.centerX, 70, '', style, this.gameoverGroup);
         this.gameoverText.anchor.setTo(0.5);
     },
 
@@ -212,7 +207,7 @@ BasicGame.Game.prototype = {
 
     showCost: function () {
         if (this.remainNum > 0) {
-            this.costText.setText('免费(' + this.remainNum + ')');
+            this.costText.setText('免费(' + this.remainNum + ') ');
         } else {
             this.costText.setText('每次' + consumePoints + '积分');
         }
