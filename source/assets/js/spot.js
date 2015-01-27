@@ -82,6 +82,7 @@ BasicGame.Preloader.prototype = {
         this.load.image('next','assets/spot/next.png');
 
         this.load.json('simages', '/spot/images');
+        this.load.json('sconfig', '/spot/config');
     },
 
     create: function () {
@@ -135,10 +136,12 @@ BasicGame.Game = function (game) {
     this.defaultRadius = 20;
     this.timeText;
     this.remainTimer;
-    this.remainTime = config.initial_time;
+    this.remainTime;
     this.promptTimes = 0;
     this.nextText = null;
     this.ready = false;
+    this.currentId;
+    this.sconfig;
 };
 
 BasicGame.Game.prototype = {
@@ -146,6 +149,16 @@ BasicGame.Game.prototype = {
     init: function () {
         this.simages = this.cache.getJSON('simages');
         this.simages = this.simages.data;
+        this.sconfig = this.cache.getJSON('sconfig');
+        this.sconfig = this.sconfig.data;
+
+        this.remainTime = parseInt(this.sconfig.i);
+        this.sconfig.fr = parseInt(this.sconfig.fr);
+        this.sconfig.rp = parseInt(this.sconfig.rp);
+        this.sconfig.at = parseInt(this.sconfig.at);
+        this.sconfig.st = parseInt(this.sconfig.st);
+        this.sconfig.t = parseInt(this.sconfig.t);
+        this.sconfig.tp = parseInt(this.sconfig.tp);
     },
 
     create: function () {
@@ -210,6 +223,22 @@ BasicGame.Game.prototype = {
     },
 
     firstLoaded: function() {
+        var _self = this;
+        ajax({
+            url: '/spot/begin',
+            data: {},
+            onSuccess: function(data) {
+                var resp = JSON.parse(data);
+                if (resp.code == 0) {
+                    _self.currentId = resp.data.i;
+                    _self.ready = true;
+                    _self.begin();
+                }
+            },
+        });
+    },
+
+    begin: function () {
         this.upImage = this.add.sprite(0, 88,'up');
         this.downImage = this.add.sprite(0, 548,'down');
 
@@ -221,7 +250,6 @@ BasicGame.Game.prototype = {
         game.world.bringToTop(this.circles);
         this.timeText = this.add.text(595, 1005, this.getRTime(), {font: "42px Arial", fill: "#ffffff"});
         this.remainTimer = game.time.events.loop(Phaser.Timer.SECOND, this.updateTime, this);
-        this.ready = true;
     },
 
     imageLoaded: function() {
@@ -230,6 +258,23 @@ BasicGame.Game.prototype = {
         this.circles.clear();
         this.circles.lineStyle(3, 0xff0000);
         this.ready = true;
+    },
+
+    finishOne: function () {
+        var _self = this;
+        ajax({
+            url: '/spot/finish',
+            data: {
+                i: this.currentId,
+                level: this.currentLevel
+            },
+            onSuccess: function(data) {
+                var resp = JSON.parse(data);
+                if (resp.code == 0) {
+                    _self.nextLevel();
+                }
+            },
+        });
     },
 
     updateTime: function () {
@@ -254,7 +299,7 @@ BasicGame.Game.prototype = {
         return minutes + ':' + seconds;
     },
 
-    check: function (sprite, pointer) {this.nextLevel();return;
+    check: function (sprite, pointer) {
         for (i = 0; i < this.currentImage.coordinate.length; i++) {
             if ((this.math.distance(pointer.x, pointer.y, this.currentImage.coordinate[i].x, this.currentImage.coordinate[i].y + 88) < this.currentImage.coordinate[i].iradius) ||
             (this.math.distance(pointer.x, pointer.y, this.currentImage.coordinate[i].x, this.currentImage.coordinate[i].y + 548) < this.currentImage.coordinate[i].iradius)) {
@@ -262,37 +307,53 @@ BasicGame.Game.prototype = {
                 this.circles.drawCircle(this.currentImage.coordinate[i].x, 548 + this.currentImage.coordinate[i].y, this.currentImage.coordinate[i].iradius * 2);
                 this.found++;
                 this.currentImage.coordinate.splice(i, 1);
-                this.remainTime += config.right_add_time;
+                this.remainTime += this.sconfig.at;
                 if (this.found == 5) {
-                    this.nextLevel();
+                    this.finishOne();
                 }
                 return;
             }
 
         }
-        this.remainTime -= config.wrong_sub_time;
+        this.remainTime -= this.sconfig.st;
     },
 
     promptOnce: function () {
         if (!this.ready) {
             return;
         }
-        if (this.promptTimes >= config.free_reminder) {
-            if (this.userPoints < config.reminder_points) {
+        if (this.promptTimes >= this.sconfig.fr) {
+            if (this.userPoints < this.sconfig.rp) {
                 sweetAlert('您的积分不够');
                 return;
             } else {
-                this.userPoints -= config.reminder_points;
+                var _self = this;
+                ajax({
+                    url: '/spot/prompt',
+                    data: {i:this.currentId},
+                    onSuccess: function(data) {
+                        var resp = JSON.parse(data);
+                        if (resp.code == 0) {
+                            _self.userPoints -= _self.sconfig.rp;
+                            _self.doPrompt();
+                        }
+                    },
+                });
             }
+        } else {
+            this.doPrompt();
         }
+    },
+
+    doPrompt: function () {
         this.promptTimes++;
-        promptpoint = this.currentImage.pop();
+        promptpoint = this.currentImage.coordinate.pop();
         this.circles.drawCircle(promptpoint.x, 88 + promptpoint.y, promptpoint.iradius * 2);
         this.circles.drawCircle(promptpoint.x, 548 + promptpoint.y, promptpoint.iradius * 2);
         this.found++;
 
         if (this.found == 5) {
-            this.nextLevel();
+            this.finishOne();
         }
     },
 
@@ -300,12 +361,22 @@ BasicGame.Game.prototype = {
         if (!this.ready) {
             return;
         }
-        if (this.userPoints < config.time_chunk_points) {
+        if (this.userPoints < this.sconfig.t) {
             sweetAlert('您的积分不够');
             return;
         } else {
-            this.userPoints -= config.time_chunk_points;
-            this.remainTime += config.time_chunk;
+            var _self = this;
+            ajax({
+                url: '/spot/timer',
+                data: {i:this.currentId},
+                onSuccess: function(data) {
+                    var resp = JSON.parse(data);
+                    if (resp.code == 0) {
+                        _self.userPoints -= _self.sconfig.tp;
+                        _self.remainTime += _self.sconfig.t;
+                    }
+                },
+            });
         }
     },
 

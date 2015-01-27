@@ -23,20 +23,21 @@ class Front_Controller extends Base_Controller
     private $meta = array();
     private $title = '';
     public $checkLogin = true;
+    public $uid;
 
     public function __construct()
     {
         parent::__construct();
-        $this->uid = 1;//TODO
-        if (!$this->uid && $this->checkLogin) {
-            // 跳转到登录页面
+        $this->load->library(array('session'));
+        if ($this->checkLogin) {
+            if ($this->router->method == 'index') {
+                //进入游戏 用户认证
+                $this->uid = 1;//TODO
+            }
+            if (!$this->uid) {
+                $this->response(false, 101);
+            }
         }
-        //load libraries
-        // $this->load->library(array('session','user_lib'));
-        // $this->load->model('category_model');
-        // $this->load->model('user_conversation_model');
-        // $this->lang->load('common');
-        // $this->load->helper('html');
     }
 
     public function response($data = false, $code = 0)
@@ -72,16 +73,3 @@ class Admin_Controller extends Base_Controller
     }
 }
 
-// Api_Controller
-require(APPPATH.'/libraries/REST_Controller.php');
-class Api_Controller extends REST_Controller
-{
-    public function __construct()
-    {
-
-        parent::__construct();
-
-        $this->load->library(array('session','user_lib'));
-
-    }
-}
