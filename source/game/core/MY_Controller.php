@@ -29,15 +29,16 @@ class Front_Controller extends Base_Controller
     {
         parent::__construct();
         $this->load->library(array('session'));
-        if ($this->checkLogin) {
-            if ($this->router->method == 'index') {
-                //进入游戏 用户认证
                 $this->uid = 1;//TODO
-            }
-            if (!$this->uid) {
-                $this->response(false, 101);
-            }
-        }
+        // if ($this->checkLogin) {
+        //     if ($this->router->method == 'index') {
+        //         //进入游戏 用户认证
+        //         $this->uid = 1;//TODO
+        //     }
+        //     if (!$this->uid) {
+        //         $this->response(false, 101);
+        //     }
+        // }
     }
 
     public function response($data = false, $code = 0)

@@ -1,6 +1,6 @@
-var game = new Phaser.Game(720, 1080, Phaser.AUTO, 'game');
+var game = new Phaser.Game(360, 540, Phaser.AUTO, 'game');
 var horseNum = 8;
-var userPoints = 200;
+var userPoints = 2000;
 BasicGame = {};
 
 BasicGame.Boot = function (game) {
@@ -56,9 +56,9 @@ BasicGame.Preloader = function (game) {
 BasicGame.Preloader.prototype = {
 
     preload: function () {
-        this.add.sprite(100, 500, 'preloaderbar-bottom');
-        this.preloadBar = this.add.sprite(106.5, 513.5, 'preloaderBar');
-        // this.preloadBar.anchor.setTo(0.5,0.5);
+        this.add.sprite(game.world.centerX, game.world.centerY, 'preloaderbar-bottom').anchor.setTo(0.5);
+        this.preloadBar = this.add.sprite(game.world.centerX, game.world.centerY, 'preloaderBar');
+        this.preloadBar.anchor.setTo(0.5);
 
         this.load.setPreloadSprite(this.preloadBar);
 
@@ -67,7 +67,7 @@ BasicGame.Preloader.prototype = {
         this.load.image('back','assets/horserace/back.png');
         this.load.image('confirm','assets/horserace/confirm.png');
         this.load.image('popup','assets/horserace/popup.png');
-        this.load.spritesheet('rank', 'assets/horserace/rank.png', 47, 47);
+        this.load.spritesheet('rank', 'assets/horserace/rank.png', 24, 24);
         this.load.image('add','assets/horserace/add.png');
         this.load.image('sub','assets/horserace/sub.png');
         this.load.image('gameover','assets/horserace/gameover.png');
@@ -75,14 +75,14 @@ BasicGame.Preloader.prototype = {
 
         for (i = 0; i < horseNum; i++) {
             hid = i + 1;
-            this.load.spritesheet('horse' + hid, 'assets/horserace/' + hid + '.png', 245, 120);
+            this.load.spritesheet('horse' + hid, 'assets/horserace/' + hid + '.png', 130, 60);
         }
 
         this.load.image('runway-begin','assets/horserace/begin.png');
         this.load.image('runway','assets/horserace/runway.png');
         this.load.image('runway-end','assets/horserace/end.png');
         this.load.image('panel','assets/horserace/panel.png');
-        this.load.spritesheet('stand','assets/horserace/stand.png', 175, 110);
+        this.load.spritesheet('stand','assets/horserace/stand.png', 87, 55);
 
 
         // this.load.audio('hit_ground_sound', 'assets/turntable/ouch.wav');
@@ -140,43 +140,43 @@ BasicGame.MainMenu.prototype = {
     },
 
     create: function () {
-        game.world.setBounds(0, 0, 720, 1080);
+        game.world.setBounds(0, 0, 360, 540);
         this.add.sprite(0, 0, 'menu-bg');
-        var horseX = 118;
-        var horseY = 210;
+        var horseX = 59;
+        var horseY = 105;
         for (i = 0; i < horseNum; i++) {
             var h = this.add.sprite(horseX, horseY, 'stand', i);
             h.inputEnabled = true;
             h.events.onInputDown.add(this.bet, this);
             if (i % 2 == 0) {
-                horseX += 310;
+                horseX += 155;
             } else {
-                horseX -= 310;
-                horseY += 200;
+                horseX -= 155;
+                horseY += 100;
             }
         }
         this.popup = this.add.group();
         this.popup.create(game.world.centerX, game.world.centerY,'popup').anchor.setTo(0.5);
-        this.selectedHorse = this.add.text(265, 324, '', { font: "40px Arial", fill: "#ffffff" }, this.popup);
+        this.selectedHorse = this.add.text(132, 161, '', { font: "20px Arial", fill: "#ffffff" }, this.popup);
         this.popup.visible = false;
-        rankButtonX = 224;
+        rankButtonX = 112;
         for (i = 0; i < 3; i++) {
-            this.rankButton[i] = this.popup.create(rankButtonX, 420, 'rank', 3 + i);
+            this.rankButton[i] = this.popup.create(rankButtonX, 210, 'rank', 3 + i);
             this.rankButton[i].inputEnabled = true;
             this.rankButton[i].events.onInputDown.add(this.toggleRank, this);
             this.rankButton[i].rankId = i;
-            rankButtonX += 108;
+            rankButtonX += 54;
         }
-        this.add.button(game.world.centerX, 750, 'confirm', this.closePopup, this, null, null, null, null, this.popup).anchor.setTo(0.5);
-        this.add.button(110, 630, 'sub', this.subPoints, this, null, null, null, null, this.popup).anchor.setTo(0.5);
-        this.add.button(610, 630, 'add', this.addPoints, this, null, null, null, null, this.popup).anchor.setTo(0.5);
-        this.betPoints = this.add.text(300, 600, chip, { font: "60px Arial", fill: "#000000" }, this.popup);
+        this.add.button(game.world.centerX, 375, 'confirm', this.closePopup, this, null, null, null, null, this.popup).anchor.setTo(0.5);
+        this.add.button(55, 315, 'sub', this.subPoints, this, null, null, null, null, this.popup).anchor.setTo(0.5);
+        this.add.button(305, 315, 'add', this.addPoints, this, null, null, null, null, this.popup).anchor.setTo(0.5);
+        this.betPoints = this.add.text(150, 300, chip, { font: "30px Arial", fill: "#000000" }, this.popup);
 
         for (i = 0; i < 3; i++) {
             this.rankSprite[i] = this.add.group();
         }
 
-        this.add.button(game.world.centerX, 1000, 'start', this.startGame, this).anchor.setTo(0.5, 0);
+        this.add.button(game.world.centerX, 500, 'start', this.startGame, this).anchor.setTo(0.5, 0);
 
     },
 
@@ -217,11 +217,11 @@ BasicGame.MainMenu.prototype = {
                 this.selectedRank--;
                 myChips.rank[this.selectedRank] = horseId;
                 myChips.rankPoints[this.selectedRank] = myBet;
-                var tempX = 110 + (horseId - 1) % 2 * 310;
-                var tempY = 338 + parseInt((horseId - 1) / 2) * 200;
+                var tempX = 55 + (horseId - 1) % 2 * 155;
+                var tempY = 168 + parseInt((horseId - 1) / 2) * 100;
                 if (this.rankSprite[this.selectedRank].length == 0) {
                     this.rankSprite[this.selectedRank].create(0, 0, 'rank', this.selectedRank);
-                    this.add.text(80, 0, myBet, { font: "40px Arial", fill: "#00CC00" }, this.rankSprite[this.selectedRank]);
+                    this.add.text(40, 0, myBet, { font: "20px Arial", fill: "#00CC00" }, this.rankSprite[this.selectedRank]);
                     this.rankSprite[this.selectedRank].x = tempX;
                     this.rankSprite[this.selectedRank].y = tempY;
                 } else {
@@ -333,10 +333,10 @@ BasicGame.Game = function (game) {
     this.ranklist;
     this.players = [];
     this.panel;
-    this.runwayLength = 2160;
-    this.runLength = 1800;
+    this.runwayLength = 1080;
+    this.runLength = 900;
     this.startX = 0;
-    this.horsePadding = 20;
+    this.horsePadding = 10;
 };
 
 BasicGame.Game.prototype = {
@@ -346,7 +346,7 @@ BasicGame.Game.prototype = {
     },
 
     create: function () {
-        game.world.setBounds(0, 0, this.runwayLength, 1080);
+        game.world.setBounds(0, 0, this.runwayLength, 540);
         game.add.tileSprite(
             0,
             0,
@@ -354,8 +354,8 @@ BasicGame.Game.prototype = {
             game.height,
             'runway'
         );
-        game.add.sprite(100 + this.startX, 217, 'runway-begin');
-        game.add.sprite(this.startX + this.runLength + 245 - this.horsePadding, 217, 'runway-end');
+        game.add.sprite(50 + this.startX, 108, 'runway-begin');
+        game.add.sprite(this.startX + this.runLength + 130 - this.horsePadding, 108, 'runway-end');
 
         this.panel = game.add.group();
         this.panel.create(0, 0, 'panel');
@@ -363,26 +363,26 @@ BasicGame.Game.prototype = {
         this.panel.cameraOffset.x = 0;
         this.panel.cameraOffset.y = 0;
 
-        var style = { font: "23px Arial", fill: "#000000" };
+        var style = { font: "11px Arial", fill: "#000000" };
         if (myChips['rank'][0]) {
-            game.add.text(80, 100, '    ' + myChips['rank'][0] + '号马\n下注' + myChips['rankPoints'][0] + '积分', style, this.panel);
+            game.add.text(44, 48, myChips['rank'][0] + '号马\n下注' + myChips['rankPoints'][0], style, this.panel);
         } else {
-            game.add.text(110, 120, '未下注', style, this.panel);
+            game.add.text(55, 60, '未下注', style, this.panel);
         }
         if (myChips['rank'][1]) {
-            game.add.text(300, 100, '    ' + myChips['rank'][1] + '号马\n下注' + myChips['rankPoints'][1] + '积分', style, this.panel);
+            game.add.text(154, 48, myChips['rank'][1] + '号马\n下注' + myChips['rankPoints'][1], style, this.panel);
         } else {
-            game.add.text(330, 120, '未下注', style, this.panel);
+            game.add.text(165, 60, '未下注', style, this.panel);
         }
         if (myChips['rank'][2]) {
-            game.add.text(530, 100, '    ' + myChips['rank'][2] + '号马\n下注' + myChips['rankPoints'][2] + '积分', style, this.panel);
+            game.add.text(269, 48, myChips['rank'][2] + '号马\n下注' + myChips['rankPoints'][2], style, this.panel);
         } else {
-            game.add.text(560, 120, '未下注', style, this.panel);
+            game.add.text(280, 60, '未下注', style, this.panel);
         }
 
-        var y = 183;
+        var y = 92;
         for (i = 0; i < horseNum; i++) {
-            this.players[i] = game.add.sprite(this.startX, y + 107 * (this.ranklist[i] - 1), 'horse' + this.ranklist[i], 0);
+            this.players[i] = game.add.sprite(this.startX, y + 53 * (this.ranklist[i] - 1), 'horse' + this.ranklist[i], 0);
         }
         this.runStart();
     },
@@ -418,33 +418,33 @@ BasicGame.Game.prototype = {
             this.players[i].animations.play('run', 12, true);
             ptween[i].start();
         }
-        game.add.tween(game.camera).to({ x: 1440 }, cameraMoveTime, Phaser.Easing.Linear.None, true);
+        game.add.tween(game.camera).to({ x: 720 }, cameraMoveTime, Phaser.Easing.Linear.None, true);
     },
 
     gameover: function () {
         var graphics = game.add.graphics(0, 0);
         graphics.alpha = 0.7;
         graphics.beginFill(0x000000);
-        graphics.drawRect(this.runwayLength - 720, 0, 720, 1080);
+        graphics.drawRect(this.runwayLength - 360, 0, 360, 540);
         game.world.bringToTop(graphics);
         graphics.endFill();
 
         var endgroup = this.add.group();
-        endgroup.create(this.runwayLength - 350, game.world.centerY, 'gameover').anchor.setTo(0.5);
+        endgroup.create(this.runwayLength - 175, game.world.centerY, 'gameover').anchor.setTo(0.5);
         if (this.ranklist[1] == myChips.rank[1]) {
-            endgroup.create(this.runwayLength - 660, game.world.centerY - 250, 'light');
+            endgroup.create(this.runwayLength - 330, game.world.centerY - 125, 'light');
         }
         if (this.ranklist[0] == myChips.rank[0]) {
-            endgroup.create(this.runwayLength - 480, game.world.centerY - 320, 'light');
+            endgroup.create(this.runwayLength - 240, game.world.centerY - 160, 'light');
         }
         if (this.ranklist[2] == myChips.rank[2]) {
-            endgroup.create(this.runwayLength - 320, game.world.centerY - 230, 'light');
+            endgroup.create(this.runwayLength - 160, game.world.centerY - 110, 'light');
         }
-        endgroup.create(this.runwayLength - 600, game.world.centerY - 150, 'stand', this.ranklist[1] - 1);
-        endgroup.create(this.runwayLength - 420, game.world.centerY - 220, 'stand', this.ranklist[0] - 1);
-        endgroup.create(this.runwayLength - 260, game.world.centerY - 130, 'stand', this.ranklist[2] - 1);
+        endgroup.create(this.runwayLength - 300, game.world.centerY - 80, 'stand', this.ranklist[1] - 1);
+        endgroup.create(this.runwayLength - 210, game.world.centerY - 110, 'stand', this.ranklist[0] - 1);
+        endgroup.create(this.runwayLength - 130, game.world.centerY - 60, 'stand', this.ranklist[2] - 1);
 
-        this.add.button(this.runwayLength - 490, game.world.centerY + 200, 'back', function(){this.state.start('MainMenu');}, this);
+        this.add.button(this.runwayLength - 245, game.world.centerY + 100, 'back', function(){this.state.start('MainMenu');}, this);
     },
 
     update: function () {

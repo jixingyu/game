@@ -58,7 +58,7 @@ BasicGame.Preloader = function (game) {
 BasicGame.Preloader.prototype = {
 
     preload: function () {
-        this.add.sprite(100, 500, 'preloaderbar-bottom');
+        this.add.sprite(game.world.centerX, game.world.centerY, 'preloaderbar-bottom').anchor.setTo(0.5);
         this.preloadBar = this.add.sprite(game.world.centerX, game.world.centerY, 'preloaderBar');
         this.preloadBar.anchor.setTo(0.5);
 

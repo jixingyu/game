@@ -47,6 +47,8 @@ class Turntable extends Front_Controller
             } else {
                 $data['todayNum'] = 0;
             }
+        } else {
+            $data['todayNum'] = 0;
         }
 
         $this->load->view('turntable', $data);
