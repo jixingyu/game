@@ -53,7 +53,7 @@ class Spot extends Front_Controller
         $this->load->model(array('spot_log_model'));
         $currentTime = time();
         $id = $this->spot_log_model->insert(array(
-            'uid'             => $this->uid,
+            'uid'             => $this->user['uid'],
             'level'           => 0,
             'award'           => '',
             'create_time'     => $currentTime,
@@ -70,7 +70,7 @@ class Spot extends Front_Controller
             $this->response(false, 404);
         }
         $logId = intval($post['i']);
-        $log = $this->spot_log_model->get_one(array('id' => $logId, 'uid' => $this->uid));
+        $log = $this->spot_log_model->get_one(array('id' => $logId, 'uid' => $this->user['uid']));
         if (empty($log)) {
             $this->response(false, 404);
         }
@@ -120,7 +120,7 @@ class Spot extends Front_Controller
             $this->response(false, 404);
         }
         $logId = intval($post['i']);
-        $log = $this->spot_log_model->get_one(array('id' => $logId, 'uid' => $this->uid));
+        $log = $this->spot_log_model->get_one(array('id' => $logId, 'uid' => $this->user['uid']));
         if (empty($log)) {
             $this->response(false, 404);
         }

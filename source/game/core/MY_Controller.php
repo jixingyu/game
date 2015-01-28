@@ -23,22 +23,39 @@ class Front_Controller extends Base_Controller
     private $meta = array();
     private $title = '';
     public $checkLogin = true;
-    public $uid;
+    public $user;
 
     public function __construct()
     {
         parent::__construct();
-        $this->load->library(array('session'));
-                $this->uid = 1;//TODO
-        // if ($this->checkLogin) {
-        //     if ($this->router->method == 'index') {
-        //         //进入游戏 用户认证
-        //         $this->uid = 1;//TODO
-        //     }
-        //     if (!$this->uid) {
-        //         $this->response(false, 101);
-        //     }
-        // }
+        $this->load->library(array('session', 'userlib'));
+
+        if ($this->router->method == 'index') {
+            //进入游戏 用户认证
+            // if ($this->checkLogin) {
+            // }
+            $userId = '54a0ee454658933134fbbfc4';
+            $pwd = 'app017858';
+            $this->user = $this->userlib->login($userId, $pwd);
+            if (empty($this->user)) {
+                $this->response(false, 101);
+            }
+        }
+        if (!$this->uid) {
+            $this->response(false, 102);
+        }
+    }
+
+    public function view($view, $vars = array(), $string = false)
+    {
+        if ($string) {
+            $result = $this->load->view($view, $vars, true);
+            return $result;
+        } else {
+            $vars['nickname'] = empty($this->user) ? '' : $this->user['name'];
+            $vars['points'] = empty($this->user) ? '' : $this->user['YXJF'];
+            $this->load->view($view, $vars);
+        }
     }
 
     public function response($data = false, $code = 0)

@@ -49,7 +49,7 @@ class Carrace extends Front_Controller
         $points = -array_sum($rankPoints);
         $updPlayData = array();
         $playData = $this->carrace_play_model->get_one(array(
-            'uid' => $this->uid,
+            'uid' => $this->user['uid'],
         ));
         if (empty($playData)) {
             $updPlayData = $playData = array(
@@ -149,7 +149,7 @@ class Carrace extends Front_Controller
         // log
         $currentTime = time();
         $this->carrace_log_model->insert(array(
-            'uid' => $this->uid,
+            'uid' => $this->user['uid'],
             'rank1' => isset($rankList[1]) ? $rankList[1] : 0,
             'rank2' => isset($rankList[2]) ? $rankList[2] : 0,
             'rank3' => isset($rankList[3]) ? $rankList[3] : 0,
@@ -159,11 +159,11 @@ class Carrace extends Front_Controller
         ));
         $updPlayData['update_time'] = $currentTime;
         if ($first) {
-            $updPlayData['uid'] = $this->uid;
+            $updPlayData['uid'] = $this->user['uid'];
             $updPlayData['create_time'] = $currentTime;
             $this->carrace_play_model->insert($updPlayData);
         } else {
-            $this->carrace_play_model->update($updPlayData, array('uid' => $this->uid));
+            $this->carrace_play_model->update($updPlayData, array('uid' => $this->user['uid']));
         }
 
         // 计算积分 remote $points TODO

@@ -1,5 +1,5 @@
 var game = new Phaser.Game(360, 540, Phaser.AUTO, 'game');
-var points = 500;
+
 BasicGame = {
 
     /* Here we've just got some global level vars that persist regardless of State swaps */
@@ -158,9 +158,9 @@ BasicGame.Game.prototype = {
         this.costText.anchor.setTo(0.5);
         this.showCost();
 
-        var nickname = game.add.text(game.world.centerX, 20, '王小明', { font: "20px Arial", fill: "#000000"}, turnGroup);
+        var nickname = game.add.text(game.world.centerX, 20, nickname, { font: "20px Arial", fill: "#000000"}, turnGroup);
         nickname.anchor.setTo(0.5, 0);
-        this.pointsText = game.add.text(280, 20, points, { font: "20px Arial", fill: "#000000"}, turnGroup);
+        if (isLogin) this.pointsText = game.add.text(280, 20, userpoints, { font: "20px Arial", fill: "#000000"}, turnGroup);
 
         desc = desc.replace(/###/g,"\n");
         descText = game.add.text(22, 472, desc, { font: "20px Arial", fill: "#000000" });
@@ -237,12 +237,12 @@ BasicGame.Game.prototype = {
                 this.remainNum--;
                 this.showCost();
             } else {
-                points -= consumePoints;
-                if (points < 0) {
+                userpoints -= consumePoints;
+                if (userpoints < 0) {
                     sweetAlert('您的积分不够');
                     return;
                 }
-                this.pointsText.setText(points);
+                this.pointsText.setText(userpoints);
             }
         }
         if(!isLogin && !!localStorage) {

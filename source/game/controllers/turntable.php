@@ -18,7 +18,8 @@ class Turntable extends Front_Controller
     public function test()
     {
         $this->load->library('szstage');
-        var_dump($this->szstage->token());exit;
+        $pwd=strtoupper(md5('app017858'));
+        var_dump($this->szstage->get_by_mobile('13888888882',$pwd));exit;
     }
 
     public function index()
@@ -28,15 +29,15 @@ class Turntable extends Front_Controller
             'bgcolor' => '3C9600',
             'title' => '转盘',
             'image' => $config['image'],
-            'isLogin' => $this->uid ? 1 : 0,
+            'isLogin' => empty($this->user) ? 0 : 1,
             'consumePoints' => $config['consume_points'],
             'freeNum' => $config['free_num'],
             'desc' => str_replace("\r", '###', str_replace("\n", '###', str_replace(array("\r\n",'"'), array('###','\"'), $config['description']))),
         );
-        if ($this->uid) {
+        if (!empty($this->user)) {
             $this->load->model('turntable_play_model');
             $playData = $this->turntable_play_model->get_one(array(
-                'uid' => $this->uid,
+                'uid' => $this->user['uid'],
             ));
             if (!empty($playData)) {
                 if ($playData['update_time'] < strtotime(date('Ymd'))) {
@@ -58,7 +59,7 @@ class Turntable extends Front_Controller
     {
         $config = $this->getConfig();
 
-        if (empty($this->uid)) {
+        if (empty($this->user)) {
             $this->guestLottery($config);
         }
         $this->load->model(array('turntable_log_model', 'turntable_play_model'));
@@ -71,7 +72,7 @@ class Turntable extends Front_Controller
         $today = strtotime(date('Ymd'));
 
         $playData = $this->turntable_play_model->get_one(array(
-            'uid' => $this->uid,
+            'uid' => $this->user['uid'],
         ));
         if (empty($playData)) {
             $playData = array(
@@ -163,7 +164,7 @@ class Turntable extends Front_Controller
         $currentTime = time();
         // log
         $this->turntable_log_model->insert(array(
-            'uid' => $this->uid,
+            'uid' => $this->user['uid'],
             'prize' => $prize,
             'award' => $award,
             'create_time' => $currentTime,
@@ -173,12 +174,12 @@ class Turntable extends Front_Controller
         $playData['range'] = json_encode($playData['range']);
         $playData['prize_num'] = json_encode($playData['prize_num']);
         if ($first) {
-            $playData['uid'] = $this->uid;
+            $playData['uid'] = $this->user['uid'];
             $playData['create_time'] = $currentTime;
             $this->turntable_play_model->insert($playData);
         } else {
             unset($playData['uid'], $playData['create_time']);
-            $this->turntable_play_model->update($playData, array('uid' => $this->uid));
+            $this->turntable_play_model->update($playData, array('uid' => $this->user['uid']));
         }
 
         // 计算积分 remote $points TODO
@@ -251,53 +252,4 @@ class Turntable extends Front_Controller
         }
         return $config;
     }
-
-    // private function playData($today, $config, $prizeArr)
-    // {
-    //     $playData = array();
-    //     $playData['today'] = $today;
-    //     $playData['todayNum'] = $this->turntable_log_model->get_count(array(
-    //         'uid' => $this->uid,
-    //         'create_time >=' => $today,
-    //     ));
-    //     $playData['total'] = $this->turntable_log_model->get_count(array(
-    //         'uid' => $this->uid,
-    //     ));
-
-    //     $todayPrizeCount = $this->turntable_log_model->prize_count(array(
-    //         'uid' => $this->uid,
-    //         'prize >' => 0,
-    //         'create_time >=' => $today,
-    //     ), 'prize');
-    //     if (!empty($todayPrizeCount)) {
-    //         foreach ($todayPrizeCount as $key => $value) {
-    //             $tmpPrize = $value['prize'];
-    //             $playData['todayPrizeCount'][$tmpPrize] = $value['cnt'];
-    //         }
-    //     }
-
-    //     foreach ($prizeArr as $key) {
-    //         if (!empty($config['range'][$key])) {
-    //             $lastIndex = 'lastIndex' . $key;
-    //             $lastPrize = $this->turntable_log_model->get_list(array(
-    //                 'uid' => $this->uid,
-    //                 'prize' => $key,
-    //             ), 1, 0, 'id');
-    //             if (!empty($lastPrize)) {
-    //                 $playData[$lastIndex] = $this->turntable_log_model->get_count(array(
-    //                     'uid' => $this->uid,
-    //                     'id <=' => $lastPrize[0]['id'],
-    //                 ));
-    //             } else {
-    //                 $playData[$lastIndex] = 0;
-    //             }
-    //         }
-
-    //         if (!isset($playData['todayPrizeCount'][$key])) {
-    //             $playData['todayPrizeCount'][$key] = 0;
-    //         }
-    //     }
-
-    //     return $playData;
-    // }
 }

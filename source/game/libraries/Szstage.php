@@ -6,10 +6,9 @@ class Szstage
     private $marginTime = 60;
 
     private $server = 'http://api.sz-stage.com:82/';
-    private $signInUrl = 'Platform/SignIn';
-    private $reSignUrl = 'Platform/ReSign';
     private $platformId = 'bctest';
     private $platformPwd = 'bo23E%asn_23*v';
+    private $platformKey = 'bc11A23';
 
     public function __construct()
     {
@@ -21,7 +20,7 @@ class Szstage
 
     public function signin()
     {
-        return $this->curl_post($this->signInUrl, array(
+        return $this->curl_post('Platform/SignIn', array(
             'PlatformId' => $this->platformId,
             'Password'   => $this->platformPwd,
         ));
@@ -29,7 +28,7 @@ class Szstage
 
     public function resign($token)
     {
-        return $this->curl_post($this->reSignUrl, array(
+        return $this->curl_post('Platform/ReSign', array(
             'Token' => $token,
         ));
     }
@@ -64,6 +63,49 @@ class Szstage
             }
         }
         return false;
+    }
+
+    public function get_points($userId, $pwd)
+    {
+        $para = $this->_signature(array(
+            'PlatformId' => $this->platformId,
+            'UserId'     => $userId,
+            'PwdMd5'     => $pwd,
+        ));
+        return $this->curl_post('User/GetPoints', $para);
+    }
+
+    public function modify_game_points($user, $points)
+    {
+        $token = $this->token();
+        if (empty($token)) {
+            return false;
+        }
+        $para = $this->_signature(array(
+            'Token'      => $token,
+            'UserId'     => $user['uid'],
+            'PwdMd5'     => $user['PwdMd5'],
+            'Points'     => $points,
+        ));
+        return $this->curl_post('Points/ModifyGamePoints', $para);
+    }
+
+    public function get_by_mobile($mobile, $pwd)
+    {
+        $para = $this->_signature(array(
+            'PlatformId' => $this->platformId,
+            'Mobile'     => $mobile,
+            'PwdMd5'     => $pwd,
+        ));
+        return $this->curl_post('User/GetByMobile', $para);
+    }
+
+    private function _signature($para)
+    {
+        $temp = $para;
+        $temp['platformKey'] = $this->platformKey;
+        sort($temp);
+        $para['Signature'] = strtoupper(sha1(implode('', $temp)));
     }
 
     public function curl_post($section = '', $params = array(), $timeout = '')

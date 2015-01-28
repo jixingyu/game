@@ -49,7 +49,7 @@ class Horserace extends Front_Controller
         $points = -array_sum($rankPoints);
         $updPlayData = array();
         $playData = $this->horserace_play_model->get_one(array(
-            'uid' => $this->uid,
+            'uid' => $this->user['uid'],
         ));
         if (empty($playData)) {
             $updPlayData = $playData = array(
@@ -97,25 +97,6 @@ class Horserace extends Front_Controller
 
             $updPlayData['lose_num'] = $playData['lose_num'] + 1;
             $updPlayData['lose_points'] = $playData['lose_points'] - $points;
-
-            // shuffle($rank);
-
-            // $exchange = array();
-            // foreach ($rank as $k => $id) {
-            //     if (isset($rankList[$k + 1]) && $rankList[$k + 1] == $id) {
-            //         $exchange[$k] = $id;
-            //     }
-            // }
-
-            // if (!empty($exchange)) {
-            //     $tmp = array_diff(array_keys($rank), array_keys($exchange));
-            //     $tmp = array_rand($tmp, count($exchange));
-            //     foreach ($exchange as $k => $rankV) {
-            //         $tmpK = array_pop($tmp);
-            //         $rank[$k] = $rank[$tmpK];
-            //         $rank[$tmpK] = $rankV;
-            //     }
-            // }
         } elseif (($playData['lose_num'] >= $config['lose_num'] || $playData['lose_points'] >= $config['lose_points'])) {
             $tmp = array_keys($rankPoints);
             shuffle($tmp);
@@ -149,7 +130,7 @@ class Horserace extends Front_Controller
         // log
         $currentTime = time();
         $this->horserace_log_model->insert(array(
-            'uid' => $this->uid,
+            'uid' => $this->user['uid'],
             'rank1' => isset($rankList[1]) ? $rankList[1] : 0,
             'rank2' => isset($rankList[2]) ? $rankList[2] : 0,
             'rank3' => isset($rankList[3]) ? $rankList[3] : 0,
@@ -159,14 +140,16 @@ class Horserace extends Front_Controller
         ));
         $updPlayData['update_time'] = $currentTime;
         if ($first) {
-            $updPlayData['uid'] = $this->uid;
+            $updPlayData['uid'] = $this->user['uid'];
             $updPlayData['create_time'] = $currentTime;
             $this->horserace_play_model->insert($updPlayData);
         } else {
-            $this->horserace_play_model->update($updPlayData, array('uid' => $this->uid));
+            $this->horserace_play_model->update($updPlayData, array('uid' => $this->user['uid']));
         }
 
         // 计算积分 remote $points TODO
+        $this->CI->load->library('szstage');
+        $this->CI->szstage->modify_game_points($this->user, $points);
 
         // 0：谢谢参与
     	$this->response(array(
