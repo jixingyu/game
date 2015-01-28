@@ -158,8 +158,7 @@ BasicGame.Game.prototype = {
         this.costText.anchor.setTo(0.5);
         this.showCost();
 
-        var nickname = game.add.text(game.world.centerX, 20, nickname, { font: "20px Arial", fill: "#000000"}, turnGroup);
-        nickname.anchor.setTo(0.5, 0);
+        game.add.text(game.world.centerX, 20, nickname, { font: "20px Arial", fill: "#000000"}, turnGroup).anchor.setTo(0.5, 0);
         if (isLogin) this.pointsText = game.add.text(280, 20, userpoints, { font: "20px Arial", fill: "#000000"}, turnGroup);
 
         desc = desc.replace(/###/g,"\n");

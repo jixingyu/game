@@ -21,7 +21,7 @@ class Carrace extends Front_Controller
             'chip'  => $config['chip'],
         );
 
-        $this->load->view('carrace', $data);
+        $this->view('carrace', $data);
     }
 
     public function start()

@@ -77,17 +77,17 @@ class Szstage
 
     public function modify_game_points($user, $points)
     {
-        $token = $this->token();
-        if (empty($token)) {
-            return false;
-        }
-        $para = $this->_signature(array(
-            'Token'      => $token,
-            'UserId'     => $user['uid'],
-            'PwdMd5'     => $user['PwdMd5'],
-            'Points'     => $points,
-        ));
-        return $this->curl_post('Points/ModifyGamePoints', $para);
+        // $token = $this->token();
+        // if (empty($token)) {
+        //     return false;
+        // }
+        // $para = $this->_signature(array(
+        //     'Token'      => $token,
+        //     'UserId'     => $user['uid'],
+        //     'PwdMd5'     => $user['PwdMd5'],
+        //     'Points'     => $points,
+        // ));
+        // return $this->curl_post('Points/ModifyGamePoints', $para);
     }
 
     public function get_by_mobile($mobile, $pwd)
@@ -106,6 +106,7 @@ class Szstage
         $temp['platformKey'] = $this->platformKey;
         sort($temp);
         $para['Signature'] = strtoupper(sha1(implode('', $temp)));
+        return $para;
     }
 
     public function curl_post($section = '', $params = array(), $timeout = '')
@@ -126,6 +127,6 @@ class Szstage
         $data = curl_exec($ch);
         curl_close($ch);
 
-        return empty($data) ? null : $data;
+        return empty($data) ? null : json_decode($data, true);
     }
 }

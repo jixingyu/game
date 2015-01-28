@@ -19,7 +19,7 @@ class Spot extends Front_Controller
             'title'  => '找茬',
         );
 
-        $this->load->view('spot', $data);
+        $this->view('spot', $data);
     }
 
     public function config()

@@ -21,7 +21,7 @@ class Horserace extends Front_Controller
             'chip'  => $config['chip'],
         );
 
-        $this->load->view('horserace', $data);
+        $this->view('horserace', $data);
     }
 
     public function start()
@@ -148,8 +148,8 @@ class Horserace extends Front_Controller
         }
 
         // 计算积分 remote $points TODO
-        $this->CI->load->library('szstage');
-        $this->CI->szstage->modify_game_points($this->user, $points);
+        $this->load->library('szstage');
+        $this->szstage->modify_game_points($this->user, $points);
 
         // 0：谢谢参与
     	$this->response(array(

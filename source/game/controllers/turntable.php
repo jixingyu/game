@@ -52,7 +52,7 @@ class Turntable extends Front_Controller
             $data['todayNum'] = 0;
         }
 
-        $this->load->view('turntable', $data);
+        $this->view('turntable', $data);
     }
 
     public function lottery()

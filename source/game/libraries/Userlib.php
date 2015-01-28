@@ -39,7 +39,7 @@ class Userlib
         if (!empty($points)) {
             $user = array(
                 'uid'  => $userId,
-                'nickname' => 'App测试2',
+                'name' => 'App测试2',
                 'YXJF' => $points['YXJF'],
                 'PwdMd5' => $pwdmd5,
             );

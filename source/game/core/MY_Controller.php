@@ -40,8 +40,10 @@ class Front_Controller extends Base_Controller
             if (empty($this->user)) {
                 $this->response(false, 101);
             }
+        } else {
+            $this->user = $this->userlib->get_user();
         }
-        if (!$this->uid) {
+        if (empty($this->user) && $this->checkLogin) {
             $this->response(false, 102);
         }
     }
