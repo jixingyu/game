@@ -1,4 +1,4 @@
-var game = new Phaser.Game(720, 1080, Phaser.AUTO, 'game');
+var game = new Phaser.Game(360, 540, Phaser.AUTO, 'game');
 
 BasicGame = {
 
@@ -69,8 +69,9 @@ BasicGame.Preloader = function (game) {
 BasicGame.Preloader.prototype = {
 
     preload: function () {
-        this.add.sprite(100, 500, 'preloaderbar-bottom');
-        this.preloadBar = this.add.sprite(106.5, 513.5, 'preloaderBar');
+        this.add.sprite(game.world.centerX, game.world.centerY, 'preloaderbar-bottom').anchor.setTo(0.5);
+        this.preloadBar = this.add.sprite(game.world.centerX, game.world.centerY, 'preloaderBar');
+        this.preloadBar.anchor.setTo(0.5);
 
         this.load.setPreloadSprite(this.preloadBar);
 
@@ -164,10 +165,10 @@ BasicGame.Game.prototype = {
     create: function () {
         this.myLoader = new Phaser.Loader(game);
         this.add.sprite(0, 0, 'header');
-        this.add.sprite(0, 510, 'mid');
-        this.add.sprite(0, 971, 'footer');
-        this.add.button(20, 1000, 'prompt', this.promptOnce, this);
-        this.add.button(205, 1000, 'add-time', this.addTime, this);
+        this.add.sprite(0, 255, 'mid');
+        this.add.sprite(0, 485, 'footer');
+        this.add.button(10, 500, 'prompt', this.promptOnce, this);
+        this.add.button(102, 500, 'add-time', this.addTime, this);
 
         this.circles = game.add.graphics(0, 0);
         this.nextLevel();
@@ -239,8 +240,8 @@ BasicGame.Game.prototype = {
     },
 
     begin: function () {
-        this.upImage = this.add.sprite(0, 88,'up');
-        this.downImage = this.add.sprite(0, 548,'down');
+        this.upImage = this.add.sprite(0, 44,'up');
+        this.downImage = this.add.sprite(0, 274,'down');
 
         this.upImage.inputEnabled = true;
         this.upImage.events.onInputDown.add(this.check, this);
@@ -248,7 +249,7 @@ BasicGame.Game.prototype = {
         this.downImage.events.onInputDown.add(this.check, this);
         this.circles.lineStyle(3, 0xff0000);
         game.world.bringToTop(this.circles);
-        this.timeText = this.add.text(595, 1005, this.getRTime(), {font: "42px Arial", fill: "#ffffff"});
+        this.timeText = this.add.text(300, 503, this.getRTime(), {font: "21px Arial", fill: "#ffffff"});
         this.remainTimer = game.time.events.loop(Phaser.Timer.SECOND, this.updateTime, this);
     },
 
@@ -301,10 +302,10 @@ BasicGame.Game.prototype = {
 
     check: function (sprite, pointer) {
         for (i = 0; i < this.currentImage.coordinate.length; i++) {
-            if ((this.math.distance(pointer.x, pointer.y, this.currentImage.coordinate[i].x, this.currentImage.coordinate[i].y + 88) < this.currentImage.coordinate[i].iradius) ||
-            (this.math.distance(pointer.x, pointer.y, this.currentImage.coordinate[i].x, this.currentImage.coordinate[i].y + 548) < this.currentImage.coordinate[i].iradius)) {
-                this.circles.drawCircle(this.currentImage.coordinate[i].x, 88 + this.currentImage.coordinate[i].y, this.currentImage.coordinate[i].iradius * 2);
-                this.circles.drawCircle(this.currentImage.coordinate[i].x, 548 + this.currentImage.coordinate[i].y, this.currentImage.coordinate[i].iradius * 2);
+            if ((this.math.distance(pointer.x, pointer.y, this.currentImage.coordinate[i].x, this.currentImage.coordinate[i].y + 44) < this.currentImage.coordinate[i].iradius) ||
+            (this.math.distance(pointer.x, pointer.y, this.currentImage.coordinate[i].x, this.currentImage.coordinate[i].y + 274) < this.currentImage.coordinate[i].iradius)) {
+                this.circles.drawCircle(this.currentImage.coordinate[i].x, 44 + this.currentImage.coordinate[i].y, this.currentImage.coordinate[i].iradius * 2);
+                this.circles.drawCircle(this.currentImage.coordinate[i].x, 274 + this.currentImage.coordinate[i].y, this.currentImage.coordinate[i].iradius * 2);
                 this.found++;
                 this.currentImage.coordinate.splice(i, 1);
                 this.remainTime += this.sconfig.at;
@@ -348,8 +349,8 @@ BasicGame.Game.prototype = {
     doPrompt: function () {
         this.promptTimes++;
         promptpoint = this.currentImage.coordinate.pop();
-        this.circles.drawCircle(promptpoint.x, 88 + promptpoint.y, promptpoint.iradius * 2);
-        this.circles.drawCircle(promptpoint.x, 548 + promptpoint.y, promptpoint.iradius * 2);
+        this.circles.drawCircle(promptpoint.x, 44 + promptpoint.y, promptpoint.iradius * 2);
+        this.circles.drawCircle(promptpoint.x, 274 + promptpoint.y, promptpoint.iradius * 2);
         this.found++;
 
         if (this.found == 5) {

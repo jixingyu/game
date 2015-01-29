@@ -132,7 +132,7 @@ BasicGame.Game.prototype = {
         var turnGroup = game.add.group();
         var turntableCache = this.cache.getImage('turntable');
         circleX = game.width / 2;
-        circleY = 90 + turntableCache.height / 2;
+        circleY = 100 + turntableCache.height / 2;
         this.turntable = turnGroup.create(circleX, circleY, 'turntable');
         this.turntable.anchor.setTo(0.5);
 
@@ -161,11 +161,12 @@ BasicGame.Game.prototype = {
 
         this.add.sprite(0, 0, 'panel');
         // game.add.text(game.world.centerX, 20, nickname, { font: "20px Arial", fill: "#000000"}, turnGroup).anchor.setTo(0.5, 0);
-        if (isLogin) this.pointsText = game.add.text(280, 20, userpoints, { font: "20px Arial", fill: "#000000"}, turnGroup);
+        this.add.text(game.world.centerX, 10, '大转盘', { font: "30px Arial", fill: "#000000"}).anchor.setTo(0.5, 0);
+        if (isLogin) this.pointsText = this.add.text(260, 15, userpoints, { font: "20px Arial", fill: "#000000"});
 
         desc = desc.replace(/###/g,"\n");
-        descText = game.add.text(22, 472, desc, { font: "20px Arial", fill: "#000000" });
-        descY = 440;
+        descText = game.add.text(22, 482, desc, { font: "20px Arial", fill: "#000000" });
+        descY = 450;
         game.add.sprite(10, descY, 'desc-header');
         descY += 31;
         for (i = 1; i <= Math.ceil(descText.getLocalBounds().height / 9); i++) {
@@ -189,7 +190,7 @@ BasicGame.Game.prototype = {
         this.gameoverGroup.visible = false;
         var style = { font: "bold 25px Arial", fill: "#0000FF", align: "center" };
 
-        this.gameoverText = game.add.text(game.world.centerX, 70, '', style, this.gameoverGroup);
+        this.gameoverText = game.add.text(game.world.centerX, 85, '', style, this.gameoverGroup);
         this.gameoverText.anchor.setTo(0.5);
     },
 

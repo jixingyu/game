@@ -82,7 +82,7 @@ BasicGame.Preloader.prototype = {
         this.load.image('runway-end','assets/horserace/end.png');
         this.load.image('panel','assets/horserace/panel.png');
         this.load.spritesheet('stand','assets/horserace/stand.png', 87, 55);
-
+        this.load.image('gamepoints','assets/gamepoints.png');
 
         // this.load.audio('hit_ground_sound', 'assets/turntable/ouch.wav');
 
@@ -142,9 +142,10 @@ BasicGame.MainMenu.prototype = {
     create: function () {
         game.world.setBounds(0, 0, 360, 540);
         this.add.sprite(0, 0, 'menu-bg');
-        this.pointsText = this.add.text(260, 5, userpoints, { font: "20px Arial", fill: "#000000" });
+        this.add.sprite(110, 50, 'gamepoints');
+        this.pointsText = this.add.text(160, 50, userpoints, { font: "20px Arial", fill: "#00CC00" });
         var horseX = 59;
-        var horseY = 80;
+        var horseY = 90;
         for (i = 0; i < horseNum; i++) {
             var h = this.add.sprite(horseX, horseY, 'stand', i);
             h.inputEnabled = true;
@@ -177,7 +178,7 @@ BasicGame.MainMenu.prototype = {
             this.rankSprite[i] = this.add.group();
         }
 
-        this.add.button(game.world.centerX, 490, 'start', this.startGame, this).anchor.setTo(0.5, 0);
+        this.add.button(game.world.centerX, 495, 'start', this.startGame, this).anchor.setTo(0.5, 0);
 
     },
 
@@ -225,7 +226,7 @@ BasicGame.MainMenu.prototype = {
                 myChips.rankPoints[this.selectedRank] = myBet;
                 updP -= myBet;
                 var tempX = 55 + (horseId - 1) % 2 * 155;
-                var tempY = 145 + parseInt((horseId - 1) / 2) * 100;
+                var tempY = 155 + parseInt((horseId - 1) / 2) * 100;
                 if (this.rankSprite[this.selectedRank].length == 0) {
                     this.rankSprite[this.selectedRank].create(0, 0, 'rank', this.selectedRank);
                     this.add.text(40, 0, myBet, { font: "20px Arial", fill: "#00CC00" }, this.rankSprite[this.selectedRank]);
@@ -380,27 +381,26 @@ BasicGame.Game.prototype = {
         this.panel.cameraOffset.x = 0;
         this.panel.cameraOffset.y = 0;
 
-        var style = { font: "20px Arial", fill: "#000000" };
         var chipY = 5;
         if (myChips['rank'][0]) {
-            game.add.text(80, chipY, myChips['rank'][0] + '号  下注积分：' + myChips['rankPoints'][0], style, this.panel);
+            game.add.text(80, chipY, myChips['rank'][0] + '号  下注积分：' + myChips['rankPoints'][0], { font: "20px Arial", fill: "#00CC00" }, this.panel);
         } else {
-            game.add.text(150, chipY, '未下注', style, this.panel);
+            game.add.text(150, chipY, '未下注', { font: "20px Arial", fill: "#FF0000" }, this.panel);
         }
         chipY += 30;
         if (myChips['rank'][1]) {
-            game.add.text(80, chipY, myChips['rank'][1] + '号  下注积分：' + myChips['rankPoints'][1], style, this.panel);
+            game.add.text(80, chipY, myChips['rank'][1] + '号  下注积分：' + myChips['rankPoints'][1], { font: "20px Arial", fill: "#00CC00" }, this.panel);
         } else {
-            game.add.text(150, chipY, '未下注', style, this.panel);
+            game.add.text(150, chipY, '未下注', { font: "20px Arial", fill: "#FF0000" }, this.panel);
         }
         chipY += 30;
         if (myChips['rank'][2]) {
-            game.add.text(80, chipY, myChips['rank'][2] + '号  下注积分：' + myChips['rankPoints'][2], style, this.panel);
+            game.add.text(80, chipY, myChips['rank'][2] + '号  下注积分：' + myChips['rankPoints'][2], { font: "20px Arial", fill: "#00CC00" }, this.panel);
         } else {
-            game.add.text(150, chipY, '未下注', style, this.panel);
+            game.add.text(150, chipY, '未下注', { font: "20px Arial", fill: "#FF0000" }, this.panel);
         }
 
-        var y = 92;
+        var y = 95;
         for (i = 0; i < horseNum; i++) {
             this.players[i] = game.add.sprite(this.startX, y + 53 * (this.ranklist[i] - 1), 'horse' + this.ranklist[i], 0);
         }
