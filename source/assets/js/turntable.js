@@ -65,6 +65,7 @@ BasicGame.Preloader.prototype = {
         this.load.setPreloadSprite(this.preloadBar);
 
         this.load.image('turntable',turntableImage);
+        this.load.image('panel','assets/turntable/panel.png');
         this.load.image('lottery','assets/turntable/start-button1.png');
         this.load.image('press','assets/turntable/press-button.png');
         this.load.image('mid-pannel','assets/turntable/mid.png');
@@ -158,7 +159,8 @@ BasicGame.Game.prototype = {
         this.costText.anchor.setTo(0.5);
         this.showCost();
 
-        game.add.text(game.world.centerX, 20, nickname, { font: "20px Arial", fill: "#000000"}, turnGroup).anchor.setTo(0.5, 0);
+        this.add.sprite(0, 0, 'panel');
+        // game.add.text(game.world.centerX, 20, nickname, { font: "20px Arial", fill: "#000000"}, turnGroup).anchor.setTo(0.5, 0);
         if (isLogin) this.pointsText = game.add.text(280, 20, userpoints, { font: "20px Arial", fill: "#000000"}, turnGroup);
 
         desc = desc.replace(/###/g,"\n");

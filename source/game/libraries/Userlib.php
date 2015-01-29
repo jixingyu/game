@@ -27,20 +27,19 @@ class Userlib
     /**
      * Require auth; while user not logged in, start login process
      *
-     * @param array $params
      * @return bool
      */
-    public function login($userId, $pwd)
+    public function login($mobile, $pwd)
     {
         $this->CI->load->library('szstage');
         $pwdmd5 = strtoupper(md5($pwd));
-        $points = $this->CI->szstage->get_points($userId, $pwdmd5);
+        $loginData = $this->CI->szstage->get_user($mobile, $pwdmd5);
 
-        if (!empty($points)) {
+        if (!empty($loginData)) {
             $user = array(
-                'uid'  => $userId,
-                'name' => 'App测试2',
-                'YXJF' => $points['YXJF'],
+                'uid'  => $loginData['UserId'],
+                'name' => $loginData['Name'],
+                'points' => $loginData['GamePoints'],
                 'PwdMd5' => $pwdmd5,
             );
             $this->CI->session->set_userdata(array(

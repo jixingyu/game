@@ -34,9 +34,9 @@ class Front_Controller extends Base_Controller
             //进入游戏 用户认证
             // if ($this->checkLogin) {
             // }
-            $userId = '54a0ee454658933134fbbfc4';
+            $mobile = '13888888882';
             $pwd = 'app017858';
-            $this->user = $this->userlib->login($userId, $pwd);
+            $this->user = $this->userlib->login($mobile, $pwd);
             if (empty($this->user)) {
                 $this->response(false, 101);
             }
@@ -55,7 +55,7 @@ class Front_Controller extends Base_Controller
             return $result;
         } else {
             $vars['nickname'] = empty($this->user) ? '' : $this->user['name'];
-            $vars['points'] = empty($this->user) ? '' : $this->user['YXJF'];
+            $vars['points'] = empty($this->user) ? '' : $this->user['points'];
             $this->load->view($view, $vars);
         }
     }

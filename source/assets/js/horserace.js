@@ -1,6 +1,5 @@
 var game = new Phaser.Game(360, 540, Phaser.AUTO, 'game');
 var horseNum = 8;
-var userPoints = 2000;
 BasicGame = {};
 
 BasicGame.Boot = function (game) {
@@ -111,6 +110,7 @@ BasicGame.MainMenu = function (game) {
     this.oldSelectedRank = null;
     this.ready = false;
     this.isPopup = false;
+    this.pointsText;
 };
 
 BasicGame.MainMenu.prototype = {
@@ -142,8 +142,9 @@ BasicGame.MainMenu.prototype = {
     create: function () {
         game.world.setBounds(0, 0, 360, 540);
         this.add.sprite(0, 0, 'menu-bg');
+        this.pointsText = this.add.text(260, 5, userpoints, { font: "20px Arial", fill: "#000000" });
         var horseX = 59;
-        var horseY = 105;
+        var horseY = 80;
         for (i = 0; i < horseNum; i++) {
             var h = this.add.sprite(horseX, horseY, 'stand', i);
             h.inputEnabled = true;
@@ -176,7 +177,7 @@ BasicGame.MainMenu.prototype = {
             this.rankSprite[i] = this.add.group();
         }
 
-        this.add.button(game.world.centerX, 500, 'start', this.startGame, this).anchor.setTo(0.5, 0);
+        this.add.button(game.world.centerX, 490, 'start', this.startGame, this).anchor.setTo(0.5, 0);
 
     },
 
@@ -187,7 +188,7 @@ BasicGame.MainMenu.prototype = {
         if (this.isPopup) {
             return;
         }
-        this.selectedRank = null;
+        this.selectedRank = this.oldSelectedRank = null;
         this.isPopup = true;
         var horseId = sprite.frame + 1;
         this.selectedHorse.setText(horseId);
@@ -196,6 +197,7 @@ BasicGame.MainMenu.prototype = {
             if (myChips.rank[i] == horseId) {
                 this.rankButton[i].loadTexture('rank', i);
                 this.selectedRank = this.oldSelectedRank = i + 1;
+                this.betPoints.setText(myChips.rankPoints[i]);
                 break;
             }
         }
@@ -207,9 +209,13 @@ BasicGame.MainMenu.prototype = {
         this.popup.visible = false;
         var myBet = +this.betPoints.text;
         var horseId = +this.selectedHorse.text;
-        if (this.oldSelectedRank && (this.oldSelectedRank != this.selectedRank || !myBet)) {
-            myChips.rank[this.oldSelectedRank - 1] = 0;
-            this.rankSprite[this.oldSelectedRank - 1].visible = false;
+        var updP = 0;
+        if (this.oldSelectedRank) {
+            if (this.oldSelectedRank != this.selectedRank || !myBet) {
+                myChips.rank[this.oldSelectedRank - 1] = 0;
+                this.rankSprite[this.oldSelectedRank - 1].visible = false;
+            }
+            updP += myChips.rankPoints[this.oldSelectedRank - 1];
         }
         if (this.selectedRank) {
             this.rankButton[this.selectedRank - 1].loadTexture('rank', this.selectedRank + 2);
@@ -217,8 +223,9 @@ BasicGame.MainMenu.prototype = {
                 this.selectedRank--;
                 myChips.rank[this.selectedRank] = horseId;
                 myChips.rankPoints[this.selectedRank] = myBet;
+                updP -= myBet;
                 var tempX = 55 + (horseId - 1) % 2 * 155;
-                var tempY = 168 + parseInt((horseId - 1) / 2) * 100;
+                var tempY = 145 + parseInt((horseId - 1) / 2) * 100;
                 if (this.rankSprite[this.selectedRank].length == 0) {
                     this.rankSprite[this.selectedRank].create(0, 0, 'rank', this.selectedRank);
                     this.add.text(40, 0, myBet, { font: "20px Arial", fill: "#00CC00" }, this.rankSprite[this.selectedRank]);
@@ -232,6 +239,7 @@ BasicGame.MainMenu.prototype = {
                 }
             }
         }
+        this.updPoints(updP);
         this.isPopup = false;
     },
 
@@ -255,12 +263,20 @@ BasicGame.MainMenu.prototype = {
                     closeOnConfirm: true
                 }, function() {
                     myChips.rank[rankId] = 0;
+                    _self.updPoints(myChips.rankPoints[rankId]);
                     _self.rankSprite[sprite.rankId].visible = false;
                     _self.selectRank(sprite);
                 });
             } else {
                 this.selectRank(sprite);
             }
+        }
+    },
+
+    updPoints: function (p) {
+        if (p != 0) {
+            userpoints += p;
+            this.pointsText.setText(userpoints);
         }
     },
 
@@ -273,12 +289,11 @@ BasicGame.MainMenu.prototype = {
     },
 
     addPoints: function (i, j) {
-        if (userPoints < chip) {
+        if (userpoints < chip) {
             sweetAlert('您的积分不够');
             return;
         } else {
             this.betPoints.setText(+this.betPoints.text + chip);
-            userPoints -= chip;
         }
     },
 
@@ -286,10 +301,8 @@ BasicGame.MainMenu.prototype = {
         var myBet = +this.betPoints.text;
         if (myBet >= chip) {
             this.betPoints.setText(myBet - chip);
-            userPoints += chip;
         } else if (myBet > 0) {
             this.betPoints.setText(0);
-            userPoints += myBet;
         }
     },
 
@@ -298,11 +311,13 @@ BasicGame.MainMenu.prototype = {
             return;
         }
 
+        var totalChips = 0;
         //  Ok, the Play Button has been clicked or touched, so let's stop the music (otherwise it'll carry on playing)
         // this.music.stop();
         for (i = 0; i < myChips.rank.length; i ++) {
             if (myChips.rank[i] > 0 && myChips.rankPoints[i] > 0) {
                 this.ready = true;
+                totalChips += myChips.rankPoints[i];
             } else if (myChips.rank[i] == 0 && myChips.rankPoints[i] > 0) {
                 myChips.rankPoints[i] = 0;
             }
@@ -320,6 +335,8 @@ BasicGame.MainMenu.prototype = {
                     var resp = JSON.parse(data);
                     if (resp.code == 0) {
                         _self.state.start('Game', true, false, resp.data.rank);
+                    } else {
+                        _self.updPoints(totalChips);
                     }
                 },
             });
@@ -363,21 +380,24 @@ BasicGame.Game.prototype = {
         this.panel.cameraOffset.x = 0;
         this.panel.cameraOffset.y = 0;
 
-        var style = { font: "11px Arial", fill: "#000000" };
+        var style = { font: "20px Arial", fill: "#000000" };
+        var chipY = 5;
         if (myChips['rank'][0]) {
-            game.add.text(44, 48, myChips['rank'][0] + '号马\n下注' + myChips['rankPoints'][0], style, this.panel);
+            game.add.text(80, chipY, myChips['rank'][0] + '号  下注积分：' + myChips['rankPoints'][0], style, this.panel);
         } else {
-            game.add.text(55, 60, '未下注', style, this.panel);
+            game.add.text(150, chipY, '未下注', style, this.panel);
         }
+        chipY += 30;
         if (myChips['rank'][1]) {
-            game.add.text(154, 48, myChips['rank'][1] + '号马\n下注' + myChips['rankPoints'][1], style, this.panel);
+            game.add.text(80, chipY, myChips['rank'][1] + '号  下注积分：' + myChips['rankPoints'][1], style, this.panel);
         } else {
-            game.add.text(165, 60, '未下注', style, this.panel);
+            game.add.text(150, chipY, '未下注', style, this.panel);
         }
+        chipY += 30;
         if (myChips['rank'][2]) {
-            game.add.text(269, 48, myChips['rank'][2] + '号马\n下注' + myChips['rankPoints'][2], style, this.panel);
+            game.add.text(80, chipY, myChips['rank'][2] + '号  下注积分：' + myChips['rankPoints'][2], style, this.panel);
         } else {
-            game.add.text(280, 60, '未下注', style, this.panel);
+            game.add.text(150, chipY, '未下注', style, this.panel);
         }
 
         var y = 92;

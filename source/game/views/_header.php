@@ -10,7 +10,7 @@
   <title><?php echo $title;?></title>
   <link rel="stylesheet" href="assets/css/sweet-alert.css">
   <script src="assets/js/sweet-alert.min.js"></script>
-  <script type="text/javascript" src="<?php echo base_url('assets/js/phaser.min.js');?>"></script>
+  <script type="text/javascript" src="<?php echo base_url('assets/js/phaser-no-physics.min.js');?>"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js/ajax.js');?>"></script>
 </head>
 

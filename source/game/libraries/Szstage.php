@@ -65,14 +65,14 @@ class Szstage
         return false;
     }
 
-    public function get_points($userId, $pwd)
+    public function get_user($mobile, $pwd)
     {
         $para = $this->_signature(array(
             'PlatformId' => $this->platformId,
-            'UserId'     => $userId,
+            'Mobile'     => $mobile,
             'PwdMd5'     => $pwd,
         ));
-        return $this->curl_post('User/GetPoints', $para);
+        return $this->curl_post('User/GetWithGameByMobile', $para);
     }
 
     public function modify_game_points($user, $points)
