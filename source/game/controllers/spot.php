@@ -33,6 +33,7 @@ class Spot extends Front_Controller
             'st'   => $config['wrong_sub_time'],
             't'    => $config['time_chunk'],
             'tp'   => $config['time_chunk_points'],
+            'desc' => $config['description'],
         ));
     }
 

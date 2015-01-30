@@ -75,12 +75,18 @@ BasicGame.Preloader.prototype = {
 
         this.load.setPreloadSprite(this.preloadBar);
 
+        this.load.image('menu-header','assets/spot/menu-header.png');
+        this.load.image('menu-mid','assets/spot/menu-mid.png');
+        this.load.image('menu-footer','assets/spot/menu-footer.png');
+        this.load.image('start','assets/spot/start.png');
+
         this.load.image('header','assets/spot/header.png');
         this.load.image('mid','assets/spot/mid.png');
         this.load.image('footer','assets/spot/footer.png');
         this.load.image('prompt','assets/spot/prompt.png');
         this.load.image('add-time','assets/spot/add-time.png');
         this.load.image('next','assets/spot/next.png');
+        this.load.image('gamepoints','assets/gamepoints.png');
 
         this.load.json('simages', '/spot/images');
         this.load.json('sconfig', '/spot/config');
@@ -97,22 +103,49 @@ BasicGame.MainMenu = function (game) {
     this.music = null;
     this.playButton = null;
     this.myChips = {};
+    this.scrollY;
 };
 
 BasicGame.MainMenu.prototype = {
 
     create: function () {
-        this.startGame();
-        // this.add.sprite(0, 0, 'titlepage');
+        this.add.sprite(0, 0, 'menu-header');
+        this.add.sprite(110, 120, 'gamepoints');
+        this.pointsText = this.add.text(160, 120, userpoints, { font: "20px Arial", fill: "#ffffff" });
 
-        // this.playButton = this.add.button(400, 600, 'playButton', this.startGame, this, 'buttonOver', 'buttonOut', 'buttonOver');
+        var desc = this.cache.getJSON('sconfig').data.desc;
+        descText = game.add.text(40, 210, desc, { font: "20px Arial", fill: "#000000" });
+        descY = 206;
+        for (i = 1; i <= Math.ceil(descText.getLocalBounds().height / 63); i++) {
+            game.add.sprite(0, descY, 'menu-mid');
+            descY += 63;
+        }
+        game.add.sprite(0, descY, 'menu-footer');
+        game.world.bringToTop(descText);
+
+        // if (descText.getLocalBounds().height > 40) {
+        //     var myHeight = 500 + descText.getLocalBounds().height;
+        // } else {
+        //     var myHeight = 540;
+        // }
+        myHeight=1000;
+        game.world.setBounds(0, 0, 360, myHeight);
+        game.inputEnabled = true;
+        game.input.onDown.add(this.beginScroll, this);
+
+        this.add.button(game.world.centerX, descY + 100, 'start', this.startGame, this).anchor.setTo(0.5, 0);
 
     },
 
     update: function () {
+        if (game.input.activePointer.isDown) {
+            game.camera.y += this.scrollY - game.input.activePointer.y;
+            this.scrollY = game.input.activePointer.y;
+        }
+    },
 
-        //  Do some nice funky main menu effect here
-
+    beginScroll: function () {
+        this.scrollY = game.input.activePointer.y;
     },
 
     startGame: function () {

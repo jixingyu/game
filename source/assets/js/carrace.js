@@ -1,6 +1,5 @@
-var game = new Phaser.Game(720, 1080, Phaser.AUTO, 'game');
+var game = new Phaser.Game(360, 540, Phaser.AUTO, 'game');
 var carNum = 8;
-var userPoints = 200;
 BasicGame = {};
 
 BasicGame.Boot = function (game) {
@@ -56,9 +55,9 @@ BasicGame.Preloader = function (game) {
 BasicGame.Preloader.prototype = {
 
     preload: function () {
-        this.add.sprite(100, 500, 'preloaderbar-bottom');
-        this.preloadBar = this.add.sprite(106.5, 513.5, 'preloaderBar');
-        // this.preloadBar.anchor.setTo(0.5,0.5);
+        this.add.sprite(game.world.centerX, game.world.centerY, 'preloaderbar-bottom').anchor.setTo(0.5);
+        this.preloadBar = this.add.sprite(game.world.centerX, game.world.centerY, 'preloaderBar');
+        this.preloadBar.anchor.setTo(0.5);
 
         this.load.setPreloadSprite(this.preloadBar);
 
@@ -67,7 +66,7 @@ BasicGame.Preloader.prototype = {
         this.load.image('back','assets/carrace/back.png');
         this.load.image('confirm','assets/carrace/confirm.png');
         this.load.image('popup','assets/carrace/popup.png');
-        this.load.spritesheet('rank', 'assets/horserace/rank.png', 47, 47);
+        this.load.spritesheet('rank', 'assets/horserace/rank.png', 24, 24);
         this.load.image('add','assets/carrace/add.png');
         this.load.image('sub','assets/carrace/sub.png');
         this.load.image('gameover','assets/horserace/gameover.png');
@@ -75,15 +74,15 @@ BasicGame.Preloader.prototype = {
 
         for (i = 0; i < carNum; i++) {
             hid = i + 1;
-            this.load.spritesheet('car' + hid, 'assets/carrace/' + hid + '.png', 240, 120);
+            this.load.spritesheet('car' + hid, 'assets/carrace/' + hid + '.png', 120, 60);
         }
 
         this.load.image('runway-begin','assets/carrace/begin.png');
         this.load.image('runway','assets/carrace/runway.png');
         this.load.image('runway-end','assets/carrace/end.png');
-        this.load.image('panel','assets/horserace/panel.png');
-        this.load.spritesheet('stand','assets/carrace/stand.png', 172, 102);
-
+        this.load.image('panel','assets/carrace/panel.png');
+        this.load.spritesheet('stand','assets/carrace/stand.png', 86, 51);
+        this.load.image('gamepoints','assets/gamepoints.png');
 
         // this.load.audio('hit_ground_sound', 'assets/turntable/ouch.wav');
 
@@ -111,6 +110,7 @@ BasicGame.MainMenu = function (game) {
     this.oldSelectedRank = null;
     this.ready = false;
     this.isPopup = false;
+    this.pointsText;
 };
 
 BasicGame.MainMenu.prototype = {
@@ -140,43 +140,45 @@ BasicGame.MainMenu.prototype = {
     },
 
     create: function () {
-        game.world.setBounds(0, 0, 720, 1080);
+        game.world.setBounds(0, 0, 360, 540);
         this.add.sprite(0, 0, 'menu-bg');
-        var carX = 90;
-        var carY = 210;
+        this.add.sprite(110, 50, 'gamepoints');
+        this.pointsText = this.add.text(160, 50, userpoints, { font: "20px Arial", fill: "#00CC00" });
+        var carX = 45;
+        var carY = 90;
         for (i = 0; i < carNum; i++) {
             var h = this.add.sprite(carX, carY, 'stand', i);
             h.inputEnabled = true;
             h.events.onInputDown.add(this.bet, this);
             if (i % 2 == 0) {
-                carX += 370;
+                carX += 185;
             } else {
-                carX -= 370;
-                carY += 190;
+                carX -= 185;
+                carY += 100;
             }
         }
         this.popup = this.add.group();
         this.popup.create(game.world.centerX, game.world.centerY,'popup').anchor.setTo(0.5);
-        this.selectedCar = this.add.text(265, 324, '', { font: "40px Arial", fill: "#ffffff" }, this.popup);
+        this.selectedCar = this.add.text(132, 161, '', { font: "20px Arial", fill: "#ffffff" }, this.popup);
         this.popup.visible = false;
-        rankButtonX = 224;
+        rankButtonX = 112;
         for (i = 0; i < 3; i++) {
-            this.rankButton[i] = this.popup.create(rankButtonX, 420, 'rank', 3 + i);
+            this.rankButton[i] = this.popup.create(rankButtonX, 210, 'rank', 3 + i);
             this.rankButton[i].inputEnabled = true;
             this.rankButton[i].events.onInputDown.add(this.toggleRank, this);
             this.rankButton[i].rankId = i;
-            rankButtonX += 108;
+            rankButtonX += 54;
         }
-        this.add.button(game.world.centerX, 750, 'confirm', this.closePopup, this, null, null, null, null, this.popup).anchor.setTo(0.5);
-        this.add.button(110, 630, 'sub', this.subPoints, this, null, null, null, null, this.popup).anchor.setTo(0.5);
-        this.add.button(610, 630, 'add', this.addPoints, this, null, null, null, null, this.popup).anchor.setTo(0.5);
-        this.betPoints = this.add.text(300, 600, chip, { font: "60px Arial", fill: "#000000" }, this.popup);
+        this.add.button(game.world.centerX, 375, 'confirm', this.closePopup, this, null, null, null, null, this.popup).anchor.setTo(0.5);
+        this.add.button(55, 315, 'sub', this.subPoints, this, null, null, null, null, this.popup).anchor.setTo(0.5);
+        this.add.button(305, 315, 'add', this.addPoints, this, null, null, null, null, this.popup).anchor.setTo(0.5);
+        this.betPoints = this.add.text(150, 300, chip, { font: "30px Arial", fill: "#000000" }, this.popup);
 
         for (i = 0; i < 3; i++) {
             this.rankSprite[i] = this.add.group();
         }
 
-        this.add.button(game.world.centerX, 970, 'start', this.startGame, this).anchor.setTo(0.5, 0);
+        this.add.button(game.world.centerX, 495, 'start', this.startGame, this).anchor.setTo(0.5, 0);
 
     },
 
@@ -187,7 +189,7 @@ BasicGame.MainMenu.prototype = {
         if (this.isPopup) {
             return;
         }
-        this.selectedRank = null;
+        this.selectedRank = this.oldSelectedRank = null;
         this.isPopup = true;
         var carId = sprite.frame + 1;
         this.selectedCar.setText(carId);
@@ -196,6 +198,7 @@ BasicGame.MainMenu.prototype = {
             if (myChips.rank[i] == carId) {
                 this.rankButton[i].loadTexture('rank', i);
                 this.selectedRank = this.oldSelectedRank = i + 1;
+                this.betPoints.setText(myChips.rankPoints[i]);
                 break;
             }
         }
@@ -207,9 +210,13 @@ BasicGame.MainMenu.prototype = {
         this.popup.visible = false;
         var myBet = +this.betPoints.text;
         var carId = +this.selectedCar.text;
-        if (this.oldSelectedRank && (this.oldSelectedRank != this.selectedRank || !myBet)) {
-            myChips.rank[this.oldSelectedRank - 1] = 0;
-            this.rankSprite[this.oldSelectedRank - 1].visible = false;
+        var updP = 0;
+        if (this.oldSelectedRank) {
+            if (this.oldSelectedRank != this.selectedRank || !myBet) {
+                myChips.rank[this.oldSelectedRank - 1] = 0;
+                this.rankSprite[this.oldSelectedRank - 1].visible = false;
+            }
+            updP += myChips.rankPoints[this.oldSelectedRank - 1];
         }
         if (this.selectedRank) {
             this.rankButton[this.selectedRank - 1].loadTexture('rank', this.selectedRank + 2);
@@ -217,11 +224,12 @@ BasicGame.MainMenu.prototype = {
                 this.selectedRank--;
                 myChips.rank[this.selectedRank] = carId;
                 myChips.rankPoints[this.selectedRank] = myBet;
-                var tempX = 80 + (carId - 1) % 2 * 370;
-                var tempY = 340 + parseInt((carId - 1) / 2) * 190;
+                updP -= myBet;
+                var tempX = 45 + (carId - 1) % 2 * 185;
+                var tempY = 155 + parseInt((carId - 1) / 2) * 100;
                 if (this.rankSprite[this.selectedRank].length == 0) {
                     this.rankSprite[this.selectedRank].create(0, 0, 'rank', this.selectedRank);
-                    this.add.text(70, 0, myBet, { font: "40px Arial", fill: "#00CC00" }, this.rankSprite[this.selectedRank]);
+                    this.add.text(30, 0, myBet, { font: "20px Arial", fill: "#00CC00" }, this.rankSprite[this.selectedRank]);
                     this.rankSprite[this.selectedRank].x = tempX;
                     this.rankSprite[this.selectedRank].y = tempY;
                 } else {
@@ -232,6 +240,7 @@ BasicGame.MainMenu.prototype = {
                 }
             }
         }
+        this.updPoints(updP);
         this.isPopup = false;
     },
 
@@ -246,7 +255,7 @@ BasicGame.MainMenu.prototype = {
                 var _self = this;
                 sweetAlert({
                     title: "确定要重新下注第" + (rankId + 1) + "名吗?",
-                    text: "确定将会取消前次下注" + myChips.rank[rankId] + "号赛车为第" + (rankId + 1) + "名!",
+                    text: "确定将会取消前次下注" + myChips.rank[rankId] + "号马为第" + (rankId + 1) + "名!",
                     type: "warning",
                     showCancelButton: true,
                     cancelButtonText: "取消",
@@ -255,12 +264,20 @@ BasicGame.MainMenu.prototype = {
                     closeOnConfirm: true
                 }, function() {
                     myChips.rank[rankId] = 0;
+                    _self.updPoints(myChips.rankPoints[rankId]);
                     _self.rankSprite[sprite.rankId].visible = false;
                     _self.selectRank(sprite);
                 });
             } else {
                 this.selectRank(sprite);
             }
+        }
+    },
+
+    updPoints: function (p) {
+        if (p != 0) {
+            userpoints += p;
+            this.pointsText.setText(userpoints);
         }
     },
 
@@ -273,12 +290,11 @@ BasicGame.MainMenu.prototype = {
     },
 
     addPoints: function (i, j) {
-        if (userPoints < chip) {
+        if (userpoints < chip) {
             sweetAlert('您的积分不够');
             return;
         } else {
             this.betPoints.setText(+this.betPoints.text + chip);
-            userPoints -= chip;
         }
     },
 
@@ -286,10 +302,8 @@ BasicGame.MainMenu.prototype = {
         var myBet = +this.betPoints.text;
         if (myBet >= chip) {
             this.betPoints.setText(myBet - chip);
-            userPoints += chip;
         } else if (myBet > 0) {
             this.betPoints.setText(0);
-            userPoints += myBet;
         }
     },
 
@@ -298,11 +312,13 @@ BasicGame.MainMenu.prototype = {
             return;
         }
 
+        var totalChips = 0;
         //  Ok, the Play Button has been clicked or touched, so let's stop the music (otherwise it'll carry on playing)
         // this.music.stop();
         for (i = 0; i < myChips.rank.length; i ++) {
             if (myChips.rank[i] > 0 && myChips.rankPoints[i] > 0) {
                 this.ready = true;
+                totalChips += myChips.rankPoints[i];
             } else if (myChips.rank[i] == 0 && myChips.rankPoints[i] > 0) {
                 myChips.rankPoints[i] = 0;
             }
@@ -320,6 +336,8 @@ BasicGame.MainMenu.prototype = {
                     var resp = JSON.parse(data);
                     if (resp.code == 0) {
                         _self.state.start('Game', true, false, resp.data.rank);
+                    } else {
+                        _self.updPoints(totalChips);
                     }
                 },
             });
@@ -333,10 +351,10 @@ BasicGame.Game = function (game) {
     this.ranklist;
     this.players = [];
     this.panel;
-    this.runwayLength = 2160;
-    this.runLength = 1800;
+    this.runwayLength = 1080;
+    this.runLength = 900;
     this.startX = 0;
-    this.carPadding = 0;
+    this.carPadding = 10;
 };
 
 BasicGame.Game.prototype = {
@@ -346,7 +364,7 @@ BasicGame.Game.prototype = {
     },
 
     create: function () {
-        game.world.setBounds(0, 0, this.runwayLength, 1080);
+        game.world.setBounds(0, 0, this.runwayLength, 540);
         game.add.tileSprite(
             0,
             0,
@@ -354,8 +372,8 @@ BasicGame.Game.prototype = {
             game.height,
             'runway'
         );
-        game.add.sprite(100 + this.startX, 217, 'runway-begin');
-        game.add.sprite(this.startX + this.runLength + 240 - this.carPadding, 217, 'runway-end');
+        game.add.sprite(50 + this.startX, 108, 'runway-begin');
+        game.add.sprite(this.startX + this.runLength + 130 - this.carPadding, 108, 'runway-end');
 
         this.panel = game.add.group();
         this.panel.create(0, 0, 'panel');
@@ -363,26 +381,28 @@ BasicGame.Game.prototype = {
         this.panel.cameraOffset.x = 0;
         this.panel.cameraOffset.y = 0;
 
-        var style = { font: "23px Arial", fill: "#000000" };
+        var chipY = 5;
         if (myChips['rank'][0]) {
-            game.add.text(80, 100, '    ' + myChips['rank'][0] + '号赛车\n下注' + myChips['rankPoints'][0] + '积分', style, this.panel);
+            game.add.text(80, chipY, myChips['rank'][0] + '号  下注积分：' + myChips['rankPoints'][0], { font: "20px Arial", fill: "#00CC00" }, this.panel);
         } else {
-            game.add.text(110, 120, '未下注', style, this.panel);
+            game.add.text(150, chipY, '未下注', { font: "20px Arial", fill: "#FF0000" }, this.panel);
         }
+        chipY += 30;
         if (myChips['rank'][1]) {
-            game.add.text(300, 100, '    ' + myChips['rank'][1] + '号赛车\n下注' + myChips['rankPoints'][1] + '积分', style, this.panel);
+            game.add.text(80, chipY, myChips['rank'][1] + '号  下注积分：' + myChips['rankPoints'][1], { font: "20px Arial", fill: "#00CC00" }, this.panel);
         } else {
-            game.add.text(330, 120, '未下注', style, this.panel);
+            game.add.text(150, chipY, '未下注', { font: "20px Arial", fill: "#FF0000" }, this.panel);
         }
+        chipY += 30;
         if (myChips['rank'][2]) {
-            game.add.text(530, 100, '    ' + myChips['rank'][2] + '号赛车\n下注' + myChips['rankPoints'][2] + '积分', style, this.panel);
+            game.add.text(80, chipY, myChips['rank'][2] + '号  下注积分：' + myChips['rankPoints'][2], { font: "20px Arial", fill: "#00CC00" }, this.panel);
         } else {
-            game.add.text(560, 120, '未下注', style, this.panel);
+            game.add.text(150, chipY, '未下注', { font: "20px Arial", fill: "#FF0000" }, this.panel);
         }
 
-        var y = 183;
+        var y = 95;
         for (i = 0; i < carNum; i++) {
-            this.players[i] = game.add.sprite(this.startX, y + 107 * (this.ranklist[i] - 1), 'car' + this.ranklist[i], 0);
+            this.players[i] = game.add.sprite(this.startX, y + 53 * (this.ranklist[i] - 1), 'car' + this.ranklist[i], 0);
         }
         this.runStart();
     },
@@ -418,33 +438,33 @@ BasicGame.Game.prototype = {
             this.players[i].animations.play('run', 12, true);
             ptween[i].start();
         }
-        game.add.tween(game.camera).to({ x: 1440 }, cameraMoveTime, Phaser.Easing.Linear.None, true);
+        game.add.tween(game.camera).to({ x: 720 }, cameraMoveTime, Phaser.Easing.Linear.None, true);
     },
 
     gameover: function () {
         var graphics = game.add.graphics(0, 0);
         graphics.alpha = 0.7;
         graphics.beginFill(0x000000);
-        graphics.drawRect(this.runwayLength - 720, 0, 720, 1080);
+        graphics.drawRect(this.runwayLength - 360, 0, 360, 540);
         game.world.bringToTop(graphics);
         graphics.endFill();
 
         var endgroup = this.add.group();
-        endgroup.create(this.runwayLength - 350, game.world.centerY, 'gameover').anchor.setTo(0.5);
+        endgroup.create(this.runwayLength - 175, game.world.centerY, 'gameover').anchor.setTo(0.5);
         if (this.ranklist[1] == myChips.rank[1]) {
-            endgroup.create(this.runwayLength - 670, game.world.centerY - 240, 'light');
+            endgroup.create(this.runwayLength - 335, game.world.centerY - 120, 'light');
         }
         if (this.ranklist[0] == myChips.rank[0]) {
-            endgroup.create(this.runwayLength - 500, game.world.centerY - 310, 'light');
+            endgroup.create(this.runwayLength - 250, game.world.centerY - 155, 'light');
         }
         if (this.ranklist[2] == myChips.rank[2]) {
-            endgroup.create(this.runwayLength - 330, game.world.centerY - 200, 'light');
+            endgroup.create(this.runwayLength - 165, game.world.centerY - 105, 'light');
         }
-        endgroup.create(this.runwayLength - 600, game.world.centerY - 150, 'stand', this.ranklist[1] - 1);
-        endgroup.create(this.runwayLength - 430, game.world.centerY - 210, 'stand', this.ranklist[0] - 1);
-        endgroup.create(this.runwayLength - 260, game.world.centerY - 100, 'stand', this.ranklist[2] - 1);
+        endgroup.create(this.runwayLength - 300, game.world.centerY - 70, 'stand', this.ranklist[1] - 1);
+        endgroup.create(this.runwayLength - 215, game.world.centerY - 105, 'stand', this.ranklist[0] - 1);
+        endgroup.create(this.runwayLength - 130, game.world.centerY - 50, 'stand', this.ranklist[2] - 1);
 
-        this.add.button(this.runwayLength - 490, game.world.centerY + 200, 'back', function(){this.state.start('MainMenu');}, this);
+        this.add.button(this.runwayLength - 240, game.world.centerY + 100, 'back', function(){this.state.start('MainMenu');}, this);
     },
 
     update: function () {
