@@ -55,9 +55,8 @@ BasicGame.Preloader = function (game) {
 BasicGame.Preloader.prototype = {
 
     preload: function () {
-        this.add.sprite(game.world.centerX, game.world.centerY, 'preloaderbar-bottom').anchor.setTo(0.5);
-        this.preloadBar = this.add.sprite(game.world.centerX, game.world.centerY, 'preloaderBar');
-        this.preloadBar.anchor.setTo(0.5);
+        this.add.sprite(55, 250, 'preloaderbar-bottom');
+        this.preloadBar = this.add.sprite(58, 257, 'preloaderBar');
 
         this.load.setPreloadSprite(this.preloadBar);
 
@@ -142,8 +141,12 @@ BasicGame.MainMenu.prototype = {
     create: function () {
         game.world.setBounds(0, 0, 360, 540);
         this.add.sprite(0, 0, 'menu-bg');
-        this.add.sprite(110, 50, 'gamepoints');
-        this.pointsText = this.add.text(160, 50, userpoints, { font: "20px Arial", fill: "#00CC00" });
+
+        var grouppoints = this.add.group();
+        grouppoints.create(0, 50, 'gamepoints');
+        this.pointsText = this.add.text(45, 50, userpoints, { font: "20px Arial", fill: "#00CC00" }, grouppoints);
+        grouppoints.x = (game.world.width - grouppoints.width) / 2;
+
         var horseX = 59;
         var horseY = 90;
         for (i = 0; i < horseNum; i++) {

@@ -17,7 +17,7 @@ class Carrace extends Front_Controller
     {
         $config = $this->getConfig();
         $data = array(
-            'title' => '赛马',
+            'title' => '赛车',
             'chip'  => $config['chip'],
         );
 

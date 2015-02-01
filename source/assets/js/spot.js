@@ -69,9 +69,8 @@ BasicGame.Preloader = function (game) {
 BasicGame.Preloader.prototype = {
 
     preload: function () {
-        this.add.sprite(game.world.centerX, game.world.centerY, 'preloaderbar-bottom').anchor.setTo(0.5);
-        this.preloadBar = this.add.sprite(game.world.centerX, game.world.centerY, 'preloaderBar');
-        this.preloadBar.anchor.setTo(0.5);
+        this.add.sprite(55, 250, 'preloaderbar-bottom');
+        this.preloadBar = this.add.sprite(58, 257, 'preloaderBar');
 
         this.load.setPreloadSprite(this.preloadBar);
 
@@ -110,26 +109,30 @@ BasicGame.MainMenu.prototype = {
 
     create: function () {
         this.add.sprite(0, 0, 'menu-header');
-        this.add.sprite(110, 120, 'gamepoints');
-        this.pointsText = this.add.text(160, 120, userpoints, { font: "20px Arial", fill: "#ffffff" });
+        var grouppoints = this.add.group();
+        grouppoints.create(0, 120, 'gamepoints');
+        this.pointsText = this.add.text(45, 120, userpoints, { font: "20px Arial", fill: "#ffffff" }, grouppoints);
+        grouppoints.x = (game.world.width - grouppoints.width) / 2;
 
         var desc = this.cache.getJSON('sconfig').data.desc;
-        descText = game.add.text(40, 210, desc, { font: "20px Arial", fill: "#000000" });
-        descY = 206;
-        for (i = 1; i <= Math.ceil(descText.getLocalBounds().height / 63); i++) {
+        descText = game.add.text(40, 205, desc, { font: "20px Arial", fill: "#000000" });
+        var loopmid = 0;
+        descY = 270;
+        if (descText.getLocalBounds().height <= 135) {
             game.add.sprite(0, descY, 'menu-mid');
-            descY += 63;
+            descY += 62;
+            loopmid++;
+        } else {
+            for (i = 1; i <= Math.ceil((descText.getLocalBounds().height - 135) / 63); i++) {
+                game.add.sprite(0, descY, 'menu-mid');
+                descY += 62;
+                loopmid++;
+            }
         }
         game.add.sprite(0, descY, 'menu-footer');
         game.world.bringToTop(descText);
 
-        // if (descText.getLocalBounds().height > 40) {
-        //     var myHeight = 500 + descText.getLocalBounds().height;
-        // } else {
-        //     var myHeight = 540;
-        // }
-        myHeight=1000;
-        game.world.setBounds(0, 0, 360, myHeight);
+        game.world.setBounds(0, 0, 360, 478+62*loopmid);
         game.inputEnabled = true;
         game.input.onDown.add(this.beginScroll, this);
 

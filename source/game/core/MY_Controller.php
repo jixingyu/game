@@ -34,9 +34,18 @@ class Front_Controller extends Base_Controller
             //进入游戏 用户认证
             // if ($this->checkLogin) {
             // }
-            $mobile = '13888888882';
-            $pwd = 'app017858';
-            $this->user = $this->userlib->login($mobile, $pwd);
+            $data='4wJJzJIciCrpGza2MXE+B6Qj9M7KjLhGR2w6aIlxUbU2h6/t3xDvJ7GFqRADBLLJ';
+            $this->load->library('Encryptlib');
+            $data = json_decode($this->encryptlib->decrypt(base64_decode($data)), true);
+            // TODO
+            // if (empty($data['mobile']) || empty($data['pwd']) || empty($data['time'])) {
+            //     $this->response(false, 101);
+            // } elseif ($data['time'] - time() > 60) {
+            //     $this->response(false, 101);
+            // }
+            // $mobile = '13888888882';
+            // $pwd = 'app017858';
+            $this->user = $this->userlib->login($data['mobile'], $data['pwd']);
             if (empty($this->user)) {
                 $this->response(false, 101);
             }
