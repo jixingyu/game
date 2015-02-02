@@ -270,6 +270,8 @@ BasicGame.Game.prototype = {
                     _self.currentId = resp.data.i;
                     _self.ready = true;
                     _self.begin();
+                } else {
+                    ajaxError(resp.code);
                 }
             },
         });
@@ -309,6 +311,8 @@ BasicGame.Game.prototype = {
                 var resp = JSON.parse(data);
                 if (resp.code == 0) {
                     _self.nextLevel();
+                } else {
+                    ajaxError(resp.code);
                 }
             },
         });
@@ -373,6 +377,8 @@ BasicGame.Game.prototype = {
                         if (resp.code == 0) {
                             _self.userPoints -= _self.sconfig.rp;
                             _self.doPrompt();
+                        } else {
+                            ajaxError(resp.code);
                         }
                     },
                 });
@@ -411,6 +417,8 @@ BasicGame.Game.prototype = {
                     if (resp.code == 0) {
                         _self.userPoints -= _self.sconfig.tp;
                         _self.remainTime += _self.sconfig.t;
+                    } else {
+                        ajaxError(resp.code);
                     }
                 },
             });

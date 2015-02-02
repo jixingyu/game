@@ -341,6 +341,7 @@ BasicGame.MainMenu.prototype = {
                         _self.state.start('Game', true, false, resp.data.rank);
                     } else {
                         _self.updPoints(totalChips);
+                        ajaxError(resp.code);
                     }
                 },
             });

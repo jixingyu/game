@@ -117,3 +117,7 @@ function rndArray(arr) {
   }
   arr = ret;
 }
+
+function ajaxError(errorCode) {
+  console.log(errorCode);
+}

@@ -226,6 +226,8 @@ BasicGame.Game.prototype = {
                     if (resp.code == 0) {
                         _self.award = resp.data.award;
                         _self.turn(+resp.data.angle);
+                    } else {
+                        ajaxError(resp.code);
                     }
                 },
             });
