@@ -385,7 +385,7 @@ BasicGame.Game.prototype = {
         this.panel.cameraOffset.x = 0;
         this.panel.cameraOffset.y = 0;
 
-        var chipY = 5;
+        var chipY = 3;
         if (myChips['rank'][0]) {
             game.add.text(80, chipY, myChips['rank'][0] + '号  下注积分：' + myChips['rankPoints'][0], { font: "20px Arial", fill: "#00CC00" }, this.panel);
         } else {

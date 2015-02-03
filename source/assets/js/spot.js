@@ -337,6 +337,7 @@ BasicGame.Game.prototype = {
             this.addPointsText.visible = false;
             if (this.simages.length <= 0) {
                 sweetAlert('恭喜通关！');
+                this.state.start('MainMenu');
                 // TODO
             }
         }, this);
