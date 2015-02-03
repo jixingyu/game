@@ -90,6 +90,9 @@ class Spot extends Front_Controller
                     $updAward = array($award);
                 }
                 $updAward = json_encode($updAward);
+                // 计算积分 remote $points TODO
+                $this->load->library('szstage');
+                $this->szstage->modify_game_points($this->user, $award);
                 break;
             }
         }
@@ -99,7 +102,11 @@ class Spot extends Front_Controller
             'award'           => $updAward,
             'update_time'     => time(),
         ), array('id' => $logId));
-        $this->response();
+        if (isset($award)) {
+            $this->response(array('points' => $award));
+        } else {
+            $this->response();
+        }
     }
 
     public function prompt()
@@ -144,7 +151,7 @@ class Spot extends Front_Controller
     public function images()
     {
         $this->load->model('spot_image_model');
-        $images = $this->spot_image_model->get_images();
+        $images = $this->spot_image_model->get_images(20);
         $this->response($images);
     }
 }

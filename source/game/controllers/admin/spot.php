@@ -8,6 +8,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  */
 class Spot extends Admin_Controller
 {
+    private $imageWidth = 360;
+    private $imageHeight = 211;
     public function __construct()
     {
         parent::__construct();
@@ -118,16 +120,14 @@ class Spot extends Admin_Controller
                 foreach ($post['coordinatex'] as $key => $value) {
                     if (empty($value)) {
                         $data['error'] = '请填写坐标';
-                    } else {
-                        $post['coordinate'][$key]['x'] = $value;
                     }
+                    $post['coordinate'][$key]['x'] = $value;
                 }
                 foreach ($post['coordinatey'] as $key => $value) {
                     if (empty($value)) {
                         $data['error'] = '请填写坐标';
-                    } else {
-                        $post['coordinate'][$key]['y'] = $value;
                     }
+                    $post['coordinate'][$key]['y'] = $value;
                 }
                 foreach ($post['radius'] as $key => $value) {
                     if (!empty($value)) {
@@ -162,43 +162,60 @@ class Spot extends Admin_Controller
                 } else {
                     if ($_FILES['up_image_ori']['error'] != 4) {
                         $imageOri = $this->upload->data();
-                    }
-
-                    if (!empty($spotImage['image_mod']) && $_FILES['up_image_mod']['error'] == 4) {
-                        $uploaded = true;
-                    } else {
-                        $upConfig['file_name'] = $currentTime . 'm.' . pathinfo($_FILES['up_image_mod']['name'], PATHINFO_EXTENSION);
-                        $this->upload->initialize($upConfig);
-                        $uploaded = $this->upload->do_upload('up_image_mod');
-                    }
-                    if (!$uploaded) {
-                        unlink($upConfig['upload_path'] . $imageOri['file_name']);
-                        $data['error'] = '上传图片出错：' . $this->upload->display_errors();
-                    } else {
-                        if ($_FILES['up_image_ori']['error'] != 4) {
-                            $post['image_ori'] = $imageOri['file_name'];
-                            $data['image']['image_ori'] = site_url($this->config->item('spot_image_path') . $imageOri['file_name']);
+                        if ($imageOri['image_width'] != $this->imageWidth || $imageOri['image_height'] != $this->imageHeight) {
+                            unlink($upConfig['upload_path'] . $imageOri['file_name']);
+                            $data['error'] = '请上传规定格式的图片：' . $this->imageWidth . '*' . $this->imageHeight;
                         }
-                        if ($_FILES['up_image_mod']['error'] != 4) {
-                            $imageMod = $this->upload->data();
-                            $post['image_mod'] = $imageMod['file_name'];
-                            $data['image']['image_mod'] = site_url($this->config->item('spot_image_path') . $imageMod['file_name']);
-                        }
-
-                        unset($post['coordinatex'], $post['coordinatey'], $post['radius']);
-                        if ($id) {
-                            if (isset($post['image_ori']) && file_exists($upConfig['upload_path'] . $spotImage['image_ori'])) {
-                                unlink($upConfig['upload_path'] . $spotImage['image_ori']);
-                            }
-                            if (isset($post['image_mod']) && file_exists($upConfig['upload_path'] . $spotImage['image_mod'])) {
-                                unlink($upConfig['upload_path'] . $spotImage['image_mod']);
-                            }
-                            $this->spot_image_model->update($post, array('id' => $id));
+                    }
+                    if (empty($data['error'])) {
+                        if (!empty($spotImage['image_mod']) && $_FILES['up_image_mod']['error'] == 4) {
+                            $uploaded = true;
                         } else {
-                            $data['image']['id'] = $this->spot_image_model->insert($post);
+                            $upConfig['file_name'] = $currentTime . 'm.' . pathinfo($_FILES['up_image_mod']['name'], PATHINFO_EXTENSION);
+                            $this->upload->initialize($upConfig);
+                            $uploaded = $this->upload->do_upload('up_image_mod');
                         }
+                        if (!$uploaded) {
+                            if ($_FILES['up_image_ori']['error'] != 4) {
+                                unlink($upConfig['upload_path'] . $imageOri['file_name']);
+                            }
+                            $data['error'] = '上传图片出错：' . $this->upload->display_errors();
+                        } else {
+                            if ($_FILES['up_image_mod']['error'] != 4) {
+                                $imageMod = $this->upload->data();
+                                if ($imageMod['image_width'] != $this->imageWidth || $imageMod['image_height'] != $this->imageHeight) {
+                                    unlink($upConfig['upload_path'] . $imageMod['file_name']);
+                                    if ($_FILES['up_image_ori']['error'] != 4) {
+                                        unlink($upConfig['upload_path'] . $imageOri['file_name']);
+                                    }
+                                    $data['error'] = '请上传规定格式的图片：' . $this->imageWidth . '*' . $this->imageHeight;
+                                } else {
+                                    $post['image_mod'] = $imageMod['file_name'];
+                                    $data['image']['image_mod'] = site_url($this->config->item('spot_image_path') . $imageMod['file_name']);
+                                }
+                            }
+                            if (empty($data['error'])) {
+                                if ($_FILES['up_image_ori']['error'] != 4) {
+                                    $post['image_ori'] = $imageOri['file_name'];
+                                    $data['image']['image_ori'] = site_url($this->config->item('spot_image_path') . $imageOri['file_name']);
+                                }
 
-                        $data['status'] = 1;
+                                unset($post['coordinatex'], $post['coordinatey'], $post['radius']);
+                                if ($id) {
+                                    if (isset($post['image_ori']) && file_exists($upConfig['upload_path'] . $spotImage['image_ori'])) {
+                                        unlink($upConfig['upload_path'] . $spotImage['image_ori']);
+                                    }
+                                    if (isset($post['image_mod']) && file_exists($upConfig['upload_path'] . $spotImage['image_mod'])) {
+                                        unlink($upConfig['upload_path'] . $spotImage['image_mod']);
+                                    }
+                                    $this->spot_image_model->update($post, array('id' => $id));
+                                } else {
+                                    $data['image']['id'] = $this->spot_image_model->insert($post);
+                                }
+
+                                $data['status'] = 1;
+                            }
+                        }
                     }
                 }
             }

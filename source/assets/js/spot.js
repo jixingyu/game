@@ -176,6 +176,7 @@ BasicGame.Game = function (game) {
     this.remainTime;
     this.promptTimes = 0;
     this.nextText = null;
+    this.addPointsText = null;
     this.ready = false;
     this.currentId;
     this.sconfig;
@@ -211,8 +212,11 @@ BasicGame.Game.prototype = {
     },
 
     nextLevel: function () {
+        this.found = 0;
         this.ready = false;
-        if (this.currentLevel > 0) {
+        if (this.simages.length <= 0) {
+            return;
+        } else if (this.currentLevel > 0) {
             if (!this.nextText) {
                 this.nextText = this.add.sprite(game.world.centerX, game.world.centerY, 'next');
                 this.nextText.anchor.setTo(0.5);
@@ -233,29 +237,26 @@ BasicGame.Game.prototype = {
 
     goNext: function () {
         this.currentLevel++;
-
-        if (this.simages.length > 0) {
-            this.currentImage = this.simages.pop();
-            this.currentImage.coordinate = JSON.parse(this.currentImage.coordinate);
-            for (i = 0; i < this.currentImage.coordinate.length; i++) {
-                this.currentImage.coordinate[i].x = parseInt(this.currentImage.coordinate[i].x);
-                this.currentImage.coordinate[i].y = parseInt(this.currentImage.coordinate[i].y);
-                if (parseInt(this.currentImage.coordinate[i].r) > 0) {
-                    this.currentImage.coordinate[i].iradius = this.currentImage.coordinate[i].r;
-                } else {
-                    this.currentImage.coordinate[i].iradius = this.defaultRadius;
-                }
-            }
-            this.myLoader.image('up', 'assets/spot/images/' + this.currentImage.image_ori, true);
-            this.myLoader.image('down', 'assets/spot/images/' + this.currentImage.image_mod, true);
-
-            if (this.currentLevel == 1) {
-                this.myLoader.onLoadComplete.addOnce(this.firstLoaded, this);
-                this.myLoader.start();
+        this.currentImage = this.simages.pop();
+        this.currentImage.coordinate = JSON.parse(this.currentImage.coordinate);
+        for (i = 0; i < this.currentImage.coordinate.length; i++) {
+            this.currentImage.coordinate[i].x = parseInt(this.currentImage.coordinate[i].x);
+            this.currentImage.coordinate[i].y = parseInt(this.currentImage.coordinate[i].y);
+            if (parseInt(this.currentImage.coordinate[i].r) > 0) {
+                this.currentImage.coordinate[i].iradius = this.currentImage.coordinate[i].r;
             } else {
-                this.myLoader.onLoadComplete.addOnce(this.imageLoaded, this);
-                this.myLoader.start();
+                this.currentImage.coordinate[i].iradius = this.defaultRadius;
             }
+        }
+        this.myLoader.image('up', 'assets/spot/images/' + this.currentImage.image_ori, true);
+        this.myLoader.image('down', 'assets/spot/images/' + this.currentImage.image_mod, true);
+
+        if (this.currentLevel == 1) {
+            this.myLoader.onLoadComplete.addOnce(this.firstLoaded, this);
+            this.myLoader.start();
+        } else {
+            this.myLoader.onLoadComplete.addOnce(this.imageLoaded, this);
+            this.myLoader.start();
         }
     },
 
@@ -310,6 +311,9 @@ BasicGame.Game.prototype = {
             onSuccess: function(data) {
                 var resp = JSON.parse(data);
                 if (resp.code == 0) {
+                    if (resp.data && resp.data.points) {
+                        _self.showPoints(resp.data.points);
+                    }
                     _self.nextLevel();
                 } else {
                     ajaxError(resp.code);
@@ -318,7 +322,30 @@ BasicGame.Game.prototype = {
         });
     },
 
+    showPoints: function (points) {
+        if (!this.addPointsText) {
+            this.addPointsText = this.add.text(game.world.centerX, 30, '+' + points, {font: "20px Arial", fill: "#A6E22E"});
+            this.addPointsText.anchor.setTo(0.5);
+            this.addPointsText.scale.set(0);
+        } else {
+            this.addPointsText.scale.set(0);
+            this.addPointsText.setText('+' + points);
+            this.addPointsText.visible = true;
+            game.world.bringToTop(this.addPointsText);
+        }
+        game.add.tween(this.addPointsText.scale).to({ x: 1, y: 1 }, 1000, Phaser.Easing.Sinusoidal.Out, true).onComplete.add(function () {
+            this.addPointsText.visible = false;
+            if (this.simages.length <= 0) {
+                sweetAlert('恭喜通关！');
+                // TODO
+            }
+        }, this);
+    },
+
     updateTime: function () {
+        if (!this.ready) {
+            return;
+        }
         this.remainTime--;
         if (this.remainTime <= 0) {
             //TODO gameover

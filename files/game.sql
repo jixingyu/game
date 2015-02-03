@@ -181,7 +181,7 @@ CREATE TABLE `spot` (
 
 /*Data for the table `spot` */
 
-insert  into `spot`(`initial_time`,`free_reminder`,`reminder_points`,`max_reminder`,`right_add_time`,`wrong_sub_time`,`time_chunk`,`time_chunk_points`,`max_time_chunk`,`mission`,`description`) values (120,3,100,5,1,5,10,100,5,'[{\"level\":\"10\",\"points\":\"500\"}]','abc');
+insert  into `spot`(`initial_time`,`free_reminder`,`reminder_points`,`max_reminder`,`right_add_time`,`wrong_sub_time`,`time_chunk`,`time_chunk_points`,`max_time_chunk`,`mission`,`description`) values (120,3,100,5,1,5,10,100,5,'[{\"level\":\"1\",\"points\":\"100\"},{\"level\":\"2\",\"points\":\"200\"}]','abc');
 
 /*Table structure for table `spot_consume_log` */
 
@@ -209,11 +209,11 @@ CREATE TABLE `spot_image` (
   `image_mod` varchar(255) NOT NULL,
   `coordinate` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
 
 /*Data for the table `spot_image` */
 
-insert  into `spot_image`(`id`,`title`,`image_ori`,`image_mod`,`coordinate`) values (1,'test','1421893438o.jpg','1421893438m.jpg','[{\"x\":\"65\",\"y\":\"199\"},{\"x\":\"234\",\"y\":\"200\"},{\"x\":\"181\",\"y\":\"359\"},{\"x\":\"519\",\"y\":\"229\"},{\"x\":\"648\",\"y\":\"269\"}]'),(2,'test2','1421893463o.jpg','1421893463m.jpg','[{\"x\":\"72\",\"y\":\"39\"},{\"x\":\"583\",\"y\":\"51\"},{\"x\":\"214\",\"y\":\"234\"},{\"x\":\"357\",\"y\":\"382\"},{\"x\":\"650\",\"y\":\"81\"}]');
+insert  into `spot_image`(`id`,`title`,`image_ori`,`image_mod`,`coordinate`) values (1,'test','1421893438o.jpg','1421893438m.jpg','[{\"x\":\"34\",\"y\":\"99\"},{\"x\":\"116\",\"y\":\"99\"},{\"x\":\"90\",\"y\":\"180\"},{\"x\":\"260\",\"y\":\"115\"},{\"x\":\"324\",\"y\":\"135\"}]'),(2,'test2','1421893463o.jpg','1421893463m.jpg','[{\"x\":\"36\",\"y\":\"20\"},{\"x\":\"291\",\"y\":\"25\"},{\"x\":\"107\",\"y\":\"117\"},{\"x\":\"128\",\"y\":\"191\"},{\"x\":\"325\",\"y\":\"40\"}]'),(3,'test3','1422936544o.jpg','1422936544m.jpg','[{\"x\":\"126\",\"y\":\"68\"},{\"x\":\"106\",\"y\":\"92\"},{\"x\":\"287\",\"y\":\"122\"},{\"x\":\"174\",\"y\":\"122\"},{\"x\":\"268\",\"y\":\"132\"}]'),(4,'test4','1422936623o.jpg','1422936623m.jpg','[{\"x\":\"336\",\"y\":\"10\"},{\"x\":\"62\",\"y\":\"74\"},{\"x\":\"127\",\"y\":\"167\"},{\"x\":\"197\",\"y\":\"173\"},{\"x\":\"285\",\"y\":\"163\"}]'),(5,'test5','1422936663o.jpg','1422936663m.jpg','[{\"x\":\"281\",\"y\":\"22\"},{\"x\":\"124\",\"y\":\"8\"},{\"x\":\"109\",\"y\":\"118\"},{\"x\":\"166\",\"y\":\"86\"},{\"x\":\"272\",\"y\":\"118\"}]');
 
 /*Table structure for table `spot_log` */
 
