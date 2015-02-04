@@ -87,7 +87,6 @@ BasicGame.Preloader.prototype = {
         this.load.image('next','assets/spot/next.png');
         this.load.image('gamepoints','assets/gamepoints.png');
 
-        this.load.json('simages', '/spot/images');
         this.load.json('sconfig', '/spot/config');
     },
 
@@ -165,7 +164,8 @@ BasicGame.Game = function (game) {
     this.simages;
     this.circles;
     this.found = 0;
-    this.currentLevel = 0;
+    this.currentLevel;
+    this.levelText;
     this.upImage;
     this.downImage;
     this.myLoader;
@@ -174,7 +174,9 @@ BasicGame.Game = function (game) {
     this.timeText;
     this.remainTimer;
     this.remainTime;
-    this.promptTimes = 0;
+    this.promptTimes;
+    this.promptText;
+    this.addtTimes;
     this.nextText = null;
     this.addPointsText = null;
     this.ready = false;
@@ -184,28 +186,51 @@ BasicGame.Game = function (game) {
 
 BasicGame.Game.prototype = {
 
+    preload: function () {
+        this.load.json('simages', '/spot/images', true);
+    },
+
     init: function () {
-        this.simages = this.cache.getJSON('simages');
-        this.simages = this.simages.data;
+        this.currentLevel = 0;
+        this.promptTimes = 0;
+        this.addtTimes = 0;
+        this.currentId = 0;
+        this.ready = false;
+        this.nextText = null;
+        this.addPointsText = null;
+
         this.sconfig = this.cache.getJSON('sconfig');
         this.sconfig = this.sconfig.data;
 
         this.remainTime = parseInt(this.sconfig.i);
         this.sconfig.fr = parseInt(this.sconfig.fr);
         this.sconfig.rp = parseInt(this.sconfig.rp);
+        this.sconfig.mr = parseInt(this.sconfig.mr);
         this.sconfig.at = parseInt(this.sconfig.at);
         this.sconfig.st = parseInt(this.sconfig.st);
-        this.sconfig.t = parseInt(this.sconfig.t);
+        this.sconfig.t  = parseInt(this.sconfig.t);
         this.sconfig.tp = parseInt(this.sconfig.tp);
+        this.sconfig.mt = parseInt(this.sconfig.mt);
     },
 
     create: function () {
+        this.simages = this.cache.getJSON('simages').data;
+        if (!this.simages || this.simages.length <= 0) {
+            sweetAlert('请检查网络');
+            this.state.start('MainMenu');
+            return;
+        }
+        this.totalLevel = this.simages.length;
+
         this.myLoader = new Phaser.Loader(game);
         this.add.sprite(0, 0, 'header');
         this.add.sprite(0, 255, 'mid');
         this.add.sprite(0, 485, 'footer');
         this.add.button(10, 500, 'prompt', this.promptOnce, this);
         this.add.button(102, 500, 'add-time', this.addTime, this);
+        this.promptText = this.add.text(53, 506, this.sconfig.fr, {font: "15px Arial", fill: "#ffffff"});
+        this.levelText = this.add.text(305, 22, '', {font: "28px Arial", fill: "#ffffff"});
+        this.levelText.anchor.setTo(0.5);
 
         this.circles = game.add.graphics(0, 0);
         this.nextLevel();
@@ -215,7 +240,11 @@ BasicGame.Game.prototype = {
         this.found = 0;
         this.ready = false;
         if (this.simages.length <= 0) {
-            return;
+            game.time.events.add(Phaser.Timer.SECOND, function(){
+                sweetAlert('恭喜通关！');
+                this.state.start('MainMenu');
+                // TODO
+            }, this).autoDestroy = true;
         } else if (this.currentLevel > 0) {
             if (!this.nextText) {
                 this.nextText = this.add.sprite(game.world.centerX, game.world.centerY, 'next');
@@ -237,6 +266,7 @@ BasicGame.Game.prototype = {
 
     goNext: function () {
         this.currentLevel++;
+        this.levelText.setText(this.totalLevel + ' - ' + this.currentLevel);
         this.currentImage = this.simages.pop();
         this.currentImage.coordinate = JSON.parse(this.currentImage.coordinate);
         for (i = 0; i < this.currentImage.coordinate.length; i++) {
@@ -312,7 +342,7 @@ BasicGame.Game.prototype = {
                 var resp = JSON.parse(data);
                 if (resp.code == 0) {
                     if (resp.data && resp.data.points) {
-                        _self.showPoints(resp.data.points);
+                        _self.showPoints('奖励' + resp.data.points + '积分');
                     }
                     _self.nextLevel();
                 } else {
@@ -324,23 +354,16 @@ BasicGame.Game.prototype = {
 
     showPoints: function (points) {
         if (!this.addPointsText) {
-            this.addPointsText = this.add.text(game.world.centerX, 30, '+' + points, {font: "20px Arial", fill: "#A6E22E"});
+            this.addPointsText = this.add.text(game.world.centerX, 30, points, {font: "20px Arial", fill: "#A6E22E"});
             this.addPointsText.anchor.setTo(0.5);
-            this.addPointsText.scale.set(0);
+            this.addPointsText.alpha = 0;
         } else {
-            this.addPointsText.scale.set(0);
-            this.addPointsText.setText('+' + points);
-            this.addPointsText.visible = true;
+            this.addPointsText.setText(points);
             game.world.bringToTop(this.addPointsText);
         }
-        game.add.tween(this.addPointsText.scale).to({ x: 1, y: 1 }, 1000, Phaser.Easing.Sinusoidal.Out, true).onComplete.add(function () {
-            this.addPointsText.visible = false;
-            if (this.simages.length <= 0) {
-                sweetAlert('恭喜通关！');
-                this.state.start('MainMenu');
-                // TODO
-            }
-        }, this);
+        var t = game.add.tween(this.addPointsText).to({ alpha: 1 }, 1000, Phaser.Easing.Linear.None);
+        t.to({ alpha: 0 }, 500, Phaser.Easing.Linear.None);
+        t.start();
     },
 
     updateTime: function () {
@@ -391,7 +414,9 @@ BasicGame.Game.prototype = {
         if (!this.ready) {
             return;
         }
-        if (this.promptTimes >= this.sconfig.fr) {
+        if (this.promptTimes >= this.sconfig.fr + this.sconfig.mr) {
+            sweetAlert('每轮最多购买' + this.sconfig.mr + '次提醒');
+        } else if (this.promptTimes >= this.sconfig.fr) {
             if (this.userPoints < this.sconfig.rp) {
                 sweetAlert('您的积分不够');
                 return;
@@ -404,6 +429,9 @@ BasicGame.Game.prototype = {
                         var resp = JSON.parse(data);
                         if (resp.code == 0) {
                             _self.userPoints -= _self.sconfig.rp;
+                            if (_self.found < 4) {
+                                _self.showPoints('-' + _self.sconfig.rp);
+                            }
                             _self.doPrompt();
                         } else {
                             ajaxError(resp.code);
@@ -412,6 +440,7 @@ BasicGame.Game.prototype = {
                 });
             }
         } else {
+            this.promptText.setText(this.sconfig.fr - this.promptTimes - 1);
             this.doPrompt();
         }
     },
@@ -432,7 +461,9 @@ BasicGame.Game.prototype = {
         if (!this.ready) {
             return;
         }
-        if (this.userPoints < this.sconfig.t) {
+        if (this.addtTimes >= this.sconfig.mt) {
+            sweetAlert('每轮最多加时' + this.sconfig.mt + '次');
+        } else if (this.userPoints < this.sconfig.t) {
             sweetAlert('您的积分不够');
             return;
         } else {
@@ -445,6 +476,8 @@ BasicGame.Game.prototype = {
                     if (resp.code == 0) {
                         _self.userPoints -= _self.sconfig.tp;
                         _self.remainTime += _self.sconfig.t;
+                        _self.showPoints('-' + _self.sconfig.tp);
+                        _self.addtTimes++;
                     } else {
                         ajaxError(resp.code);
                     }

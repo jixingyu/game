@@ -2,10 +2,10 @@
 
 <div class="row">
     <div class="col-lg-8">
-        <h1 class="page-header">找茬</h1>
+        <h1 class="page-header">找东西</h1>
 
         <div class="text-num">
-            <form role="form" action="/admin/spot" method="post" enctype="multipart/form-data">
+            <form role="form" action="/admin/find" method="post" enctype="multipart/form-data">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         基础设定
@@ -14,7 +14,8 @@
                         <p>
                             每轮游戏初试时间
                             <input type="text" name="initial_time" value="<?php echo $config['initial_time'];?>">
-                            秒，每轮游戏总共20关，每轮游戏从游戏库随机抽出20个关卡组成一个完整的一轮游戏。
+                            秒，一关到底，直到游戏时间结束为止，系统都会不断在游戏界面中刷新游戏道具图片
+
                         </p>
                         <p>
                             每轮游戏送
@@ -26,9 +27,9 @@
                             次
                         </p>
                         <p>
-                            每次点对增加时间
+                            每次完成任务增加时间
                             +<input type="text" name="right_add_time" value="<?php echo $config['right_add_time'];?>">
-                            秒，每次点错扣除时间
+                            秒，每次找错物品扣除时间
                             -<input type="text" name="wrong_sub_time" value="<?php echo $config['wrong_sub_time'];?>">
                             秒
                         </p>

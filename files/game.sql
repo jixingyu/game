@@ -91,21 +91,38 @@ CREATE TABLE `carrace_play` (
 DROP TABLE IF EXISTS `find`;
 
 CREATE TABLE `find` (
-  `time_right` tinyint(1) unsigned NOT NULL,
-  `time_finish_mission` tinyint(1) unsigned NOT NULL,
-  `time_prop_min` tinyint(1) unsigned NOT NULL,
-  `time_prop_max` tinyint(1) unsigned NOT NULL,
-  `time_wrong` tinyint(1) unsigned NOT NULL,
-  `quick_points` int(1) unsigned NOT NULL,
-  `quick_free` tinyint(1) unsigned NOT NULL,
-  `quick_max` tinyint(1) unsigned NOT NULL,
-  `time_points` int(1) unsigned NOT NULL,
-  `time_seconds` tinyint(1) unsigned NOT NULL,
-  `time_max` tinyint(1) unsigned NOT NULL,
-  `mission` varchar(255) NOT NULL
+  `initial_time` int(3) unsigned NOT NULL,
+  `free_reminder` tinyint(1) unsigned NOT NULL,
+  `reminder_points` int(3) unsigned NOT NULL,
+  `max_reminder` tinyint(1) unsigned NOT NULL,
+  `right_add_time` tinyint(1) unsigned NOT NULL,
+  `wrong_sub_time` tinyint(1) unsigned NOT NULL,
+  `time_chunk` tinyint(2) unsigned NOT NULL,
+  `time_chunk_points` int(3) unsigned NOT NULL,
+  `max_time_chunk` tinyint(1) unsigned NOT NULL,
+  `mission` varchar(255) NOT NULL,
+  `description` varchar(2000) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 /*Data for the table `find` */
+
+insert  into `find`(`initial_time`,`free_reminder`,`reminder_points`,`max_reminder`,`right_add_time`,`wrong_sub_time`,`time_chunk`,`time_chunk_points`,`max_time_chunk`,`mission`,`description`) values (120,3,100,50,1,5,10,100,5,'[{\"level\":\"1\",\"points\":\"100\"},{\"level\":\"5\",\"points\":\"200\"}]','abc');
+
+/*Table structure for table `find_log` */
+
+DROP TABLE IF EXISTS `find_log`;
+
+CREATE TABLE `find_log` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uid` varchar(100) NOT NULL,
+  `award` varchar(100) NOT NULL,
+  `level` tinyint(1) unsigned NOT NULL,
+  `create_time` int(10) unsigned NOT NULL,
+  `update_time` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+/*Data for the table `find_log` */
 
 /*Table structure for table `horserace` */
 
@@ -181,7 +198,7 @@ CREATE TABLE `spot` (
 
 /*Data for the table `spot` */
 
-insert  into `spot`(`initial_time`,`free_reminder`,`reminder_points`,`max_reminder`,`right_add_time`,`wrong_sub_time`,`time_chunk`,`time_chunk_points`,`max_time_chunk`,`mission`,`description`) values (120,3,100,5,1,5,10,100,5,'[{\"level\":\"1\",\"points\":\"100\"},{\"level\":\"2\",\"points\":\"200\"}]','abc');
+insert  into `spot`(`initial_time`,`free_reminder`,`reminder_points`,`max_reminder`,`right_add_time`,`wrong_sub_time`,`time_chunk`,`time_chunk_points`,`max_time_chunk`,`mission`,`description`) values (120,3,100,50,1,5,10,100,5,'[{\"level\":\"1\",\"points\":\"100\"},{\"level\":\"5\",\"points\":\"200\"}]','abc');
 
 /*Table structure for table `spot_consume_log` */
 
@@ -213,7 +230,7 @@ CREATE TABLE `spot_image` (
 
 /*Data for the table `spot_image` */
 
-insert  into `spot_image`(`id`,`title`,`image_ori`,`image_mod`,`coordinate`) values (1,'test','1421893438o.jpg','1421893438m.jpg','[{\"x\":\"34\",\"y\":\"99\"},{\"x\":\"116\",\"y\":\"99\"},{\"x\":\"90\",\"y\":\"180\"},{\"x\":\"260\",\"y\":\"115\"},{\"x\":\"324\",\"y\":\"135\"}]'),(2,'test2','1421893463o.jpg','1421893463m.jpg','[{\"x\":\"36\",\"y\":\"20\"},{\"x\":\"291\",\"y\":\"25\"},{\"x\":\"107\",\"y\":\"117\"},{\"x\":\"128\",\"y\":\"191\"},{\"x\":\"325\",\"y\":\"40\"}]'),(3,'test3','1422936544o.jpg','1422936544m.jpg','[{\"x\":\"126\",\"y\":\"68\"},{\"x\":\"106\",\"y\":\"92\"},{\"x\":\"287\",\"y\":\"122\"},{\"x\":\"174\",\"y\":\"122\"},{\"x\":\"268\",\"y\":\"132\"}]'),(4,'test4','1422936623o.jpg','1422936623m.jpg','[{\"x\":\"336\",\"y\":\"10\"},{\"x\":\"62\",\"y\":\"74\"},{\"x\":\"127\",\"y\":\"167\"},{\"x\":\"197\",\"y\":\"173\"},{\"x\":\"285\",\"y\":\"163\"}]'),(5,'test5','1422936663o.jpg','1422936663m.jpg','[{\"x\":\"281\",\"y\":\"22\"},{\"x\":\"124\",\"y\":\"8\"},{\"x\":\"109\",\"y\":\"118\"},{\"x\":\"166\",\"y\":\"86\"},{\"x\":\"272\",\"y\":\"118\"}]');
+insert  into `spot_image`(`id`,`title`,`image_ori`,`image_mod`,`coordinate`) values (1,'test','1421893438o.jpg','1421893438m.jpg','[{\"x\":\"34\",\"y\":\"99\"},{\"x\":\"116\",\"y\":\"99\"},{\"x\":\"90\",\"y\":\"180\"},{\"x\":\"260\",\"y\":\"115\"},{\"x\":\"324\",\"y\":\"135\"}]'),(2,'test2','1421893463o.jpg','1421893463m.jpg','[{\"x\":\"36\",\"y\":\"20\"},{\"x\":\"291\",\"y\":\"25\"},{\"x\":\"107\",\"y\":\"117\"},{\"x\":\"178\",\"y\":\"191\"},{\"x\":\"325\",\"y\":\"40\"}]'),(3,'test3','1422936544o.jpg','1422936544m.jpg','[{\"x\":\"126\",\"y\":\"68\"},{\"x\":\"106\",\"y\":\"92\"},{\"x\":\"287\",\"y\":\"122\"},{\"x\":\"174\",\"y\":\"122\"},{\"x\":\"268\",\"y\":\"132\"}]'),(4,'test4','1422936623o.jpg','1422936623m.jpg','[{\"x\":\"336\",\"y\":\"10\"},{\"x\":\"62\",\"y\":\"74\"},{\"x\":\"127\",\"y\":\"167\"},{\"x\":\"197\",\"y\":\"173\"},{\"x\":\"285\",\"y\":\"163\"}]'),(5,'test5','1422936663o.jpg','1422936663m.jpg','[{\"x\":\"281\",\"y\":\"22\"},{\"x\":\"124\",\"y\":\"8\"},{\"x\":\"109\",\"y\":\"118\"},{\"x\":\"166\",\"y\":\"86\"},{\"x\":\"272\",\"y\":\"118\"}]');
 
 /*Table structure for table `spot_log` */
 
@@ -222,9 +239,6 @@ DROP TABLE IF EXISTS `spot_log`;
 CREATE TABLE `spot_log` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `uid` varchar(100) NOT NULL,
-  `reminder_times` int(1) unsigned NOT NULL,
-  `added_time` int(1) unsigned NOT NULL,
-  `consume_points` int(3) unsigned NOT NULL,
   `award` varchar(100) NOT NULL,
   `level` tinyint(1) unsigned NOT NULL,
   `create_time` int(10) unsigned NOT NULL,

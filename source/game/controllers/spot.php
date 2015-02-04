@@ -29,10 +29,12 @@ class Spot extends Front_Controller
             'i'    => $config['initial_time'],
             'fr'   => $config['free_reminder'],
             'rp'   => $config['reminder_points'],
+            'mr'   => $config['max_reminder'],
             'at'   => $config['right_add_time'],
             'st'   => $config['wrong_sub_time'],
             't'    => $config['time_chunk'],
             'tp'   => $config['time_chunk_points'],
+            'mt'   => $config['max_time_chunk'],
             'desc' => $config['description'],
         ));
     }
