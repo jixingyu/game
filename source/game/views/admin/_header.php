@@ -133,6 +133,12 @@
 		                            <a href="/admin/find">游戏参数配置</a>
 		                        </li>
 		                        <li>
+		                            <a href="/admin/find/tag">标签管理</a>
+		                        </li>
+		                        <li>
+		                            <a href="/admin/find/image">图片管理</a>
+		                        </li>
+		                        <li>
 		                            <a href="/admin/find/statistic">统计</a>
 		                        </li>
 		                    </ul>

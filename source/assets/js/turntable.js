@@ -119,6 +119,7 @@ BasicGame.Game = function (game) {
     this.descobj;
     this.remainNum;
     this.scrollY = false;
+    this.enableScroll;
 
     //  You can use any of these from any function within this State.
     //  But do consider them as being 'reserved words', i.e. don't create a property for your own game called "world" or you'll over-write the world reference.
@@ -177,12 +178,13 @@ BasicGame.Game.prototype = {
 
         if (descText.getLocalBounds().height > 40) {
             var myHeight = 500 + descText.getLocalBounds().height;
+            this.enableScroll = true;
+            game.world.setBounds(0, 0, 360, myHeight);
+            game.inputEnabled = true;
+            game.input.onDown.add(this.beginScroll, this);
         } else {
-            var myHeight = 540;
+            this.enableScroll = false;
         }
-        game.world.setBounds(0, 0, 360, myHeight);
-        game.inputEnabled = true;
-        game.input.onDown.add(this.beginScroll, this);
 
         // gameover group
         this.gameoverGroup = game.add.group();
@@ -194,7 +196,7 @@ BasicGame.Game.prototype = {
     },
 
     update: function () {
-        if (game.input.activePointer.isDown) {
+        if (this.enableScroll && game.input.activePointer.isDown) {
             game.camera.y += this.scrollY - game.input.activePointer.y;
             this.scrollY = game.input.activePointer.y;
         }

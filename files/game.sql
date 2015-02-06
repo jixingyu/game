@@ -124,6 +124,22 @@ CREATE TABLE `find_log` (
 
 /*Data for the table `find_log` */
 
+/*Table structure for table `find_tag` */
+
+DROP TABLE IF EXISTS `find_tag`;
+
+CREATE TABLE `find_tag` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `create_time` int(10) unsigned NOT NULL,
+  `update_time` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+
+/*Data for the table `find_tag` */
+
+insert  into `find_tag`(`id`,`name`,`create_time`,`update_time`) values (1,'服装',0,0),(2,'运动',0,0);
+
 /*Table structure for table `horserace` */
 
 DROP TABLE IF EXISTS `horserace`;

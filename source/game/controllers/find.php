@@ -16,7 +16,7 @@ class Find extends Front_Controller
     public function index()
     {
     	$data = array(
-            'title'  => '找茬',
+            'title'  => '找东西',
         );
 
         $this->view('find', $data);

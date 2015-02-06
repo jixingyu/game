@@ -137,6 +137,9 @@ class Spot extends Admin_Controller
                 $data['image']['coordinate'] = $post['coordinate'];
                 $post['coordinate'] = json_encode($post['coordinate']);
             }
+            if (empty($data['error']) && !$id && ($_FILES['up_image_ori']['error'] == 4 || $_FILES['up_image_mod']['error'] == 4)) {
+                $data['error'] = '请上传图片';
+            }
 
             if (empty($data['error'])) {
                 $this->load->library('upload');

@@ -100,8 +100,8 @@ BasicGame.MainMenu = function (game) {
 
     this.music = null;
     this.playButton = null;
-    this.myChips = {};
     this.scrollY;
+    this.enableScroll;
 };
 
 BasicGame.MainMenu.prototype = {
@@ -120,9 +120,10 @@ BasicGame.MainMenu.prototype = {
         if (descText.getLocalBounds().height <= 135) {
             game.add.sprite(0, descY, 'menu-mid');
             descY += 62;
-            loopmid++;
+            this.enableScroll = false;
         } else {
-            for (i = 1; i <= Math.ceil((descText.getLocalBounds().height - 135) / 63); i++) {
+            this.enableScroll = true;
+            for (i = 1; i <= Math.ceil((descText.getLocalBounds().height - 135) / 62); i++) {
                 game.add.sprite(0, descY, 'menu-mid');
                 descY += 62;
                 loopmid++;
@@ -131,16 +132,18 @@ BasicGame.MainMenu.prototype = {
         game.add.sprite(0, descY, 'menu-footer');
         game.world.bringToTop(descText);
 
-        game.world.setBounds(0, 0, 360, 478+62*loopmid);
-        game.inputEnabled = true;
-        game.input.onDown.add(this.beginScroll, this);
+        if (this.enableScroll) {
+            game.world.setBounds(0, 0, 360, 478+62*loopmid);
+            game.inputEnabled = true;
+            game.input.onDown.add(this.beginScroll, this);
+        }
 
         this.add.button(game.world.centerX, descY + 100, 'start', this.startGame, this).anchor.setTo(0.5, 0);
 
     },
 
     update: function () {
-        if (game.input.activePointer.isDown) {
+        if (this.enableScroll && game.input.activePointer.isDown) {
             game.camera.y += this.scrollY - game.input.activePointer.y;
             this.scrollY = game.input.activePointer.y;
         }
