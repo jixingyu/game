@@ -10,7 +10,7 @@
     <div class="col-md-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                找东西标签管理
+                标签列表
             </div>
             <!-- /.panel-heading -->
             <div class="panel-body">
@@ -25,10 +25,12 @@
                         </thead>
                         <tbody>
                             <?php foreach ($tags as $key => $row) :?>
-                            <tr>
+                            <tr id="tr<?php echo $row['id'];?>">
                                 <td><?php echo $key + 1;?></td>
                                 <td><?php echo $row['name'];?></td>
-                                <td><a href="/admin/find/editTag/<?php echo $row['id'];?>">修改</a></td>
+                                <td><a href="/admin/find/editTag/<?php echo $row['id'];?>">修改</a>
+                                    <a onclick="del(<?php echo $row['id'];?>)" href="javascript:;">删除</a>
+                                </td>
                             </tr>
                             <?php endforeach;?>
                         </tbody>
@@ -42,5 +44,22 @@
         <!-- /.panel -->
     </div>
 </div>
+<script type="text/javascript">
+    function del(id) {
+        if (confirm('确定要删除吗？')) {
+            var tr = $("#tr" + id);
+            $.get("/admin/find/deleteTag/" + id,function(data){
+                data = JSON.parse(data);
+                if (data.code == 1) {
+                    tr.remove();
+                } else if (data.message) {
+                    alert(data.message);
+                } else {
+                    alert('操作失败');
+                }
+            });
+        }
+    };
+</script>
 
 <?php include('_footer.php');?>

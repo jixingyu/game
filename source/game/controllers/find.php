@@ -25,6 +25,11 @@ class Find extends Front_Controller
     public function config()
     {
         $config = $this->getConfig();
+
+        $this->load->model(array('find_image_model', 'find_tag_model'));
+        $images = $this->find_image_model->get_images();
+        $tags = $this->find_tag_model->get_list();
+
         $this->response(array(
             'i'    => $config['initial_time'],
             'fr'   => $config['free_reminder'],
@@ -36,6 +41,8 @@ class Find extends Front_Controller
             'tp'   => $config['time_chunk_points'],
             'mt'   => $config['max_time_chunk'],
             'desc' => $config['description'],
+            'images' => $images,
+            'tags'   => $tags,
         ));
     }
 
@@ -148,12 +155,5 @@ class Find extends Front_Controller
         ));
 
         $this->response(array('c' => $consumePoints));
-    }
-
-    public function images()
-    {
-        $this->load->model('find_image_model');
-        $images = $this->find_image_model->get_images(20);
-        $this->response($images);
     }
 }

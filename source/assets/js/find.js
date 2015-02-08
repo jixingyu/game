@@ -90,7 +90,7 @@ BasicGame.Boot.prototype = {
         //  Here we load the assets required for our preloader (in this case a background and a loading bar)
         this.load.image('preloaderBar', 'assets/preloader.png');
         this.load.image('preloaderbar-bottom', 'assets/preloader-bottom.png');
-
+        this.load.json('sconfig', '/find/config');
     },
 
     create: function () {
@@ -128,18 +128,25 @@ BasicGame.Preloader.prototype = {
         this.load.image('add-time','assets/find/add-time.png');
         this.load.image('gamepoints','assets/gamepoints.png');
 
-        this.load.json('sconfig', '/find/config');
-
-        var testImage = ['1.png','2.png','3.png','4.png','5.png','6.png','7.png','8.png','9.png','10.png','11.png','6060.png'];
-        for (i=0;i<50;i++) {
-            var j = this.rnd.integerInRange(0, testImage.length - 1);
-            this.load.image('test'+i,'assets/find/images/test/'+testImage[j]);
+        var simages = this.cache.getJSON('sconfig').data.images;
+        var stags = this.cache.getJSON('sconfig').data.tags;
+        if (!simages || simages.length <= 0 || !stags || stags.length <= 0) {
+            sweetAlert('请检查网络');
+            return;
         }
+
+        for (i=0;i<50;i++) {
+            var j = this.rnd.integerInRange(0, simages.length - 1);
+            this.load.image('test'+i,'assets/find/images/'+simages[j].file_name);
+        }
+        this.ready = true;
     },
 
     create: function () {
-        this.preloadBar.cropEnabled = false;
-        this.state.start('MainMenu');
+        if (this.ready) {
+            this.preloadBar.cropEnabled = false;
+            this.state.start('MainMenu');
+        }
     },
 };
 
@@ -257,16 +264,18 @@ console.log(imgs);
             }
         }
 
-        this.header = this.add.sprite(0, 0, 'header');
-        this.footer = this.add.sprite(0, 491, 'footer');
-        this.header.fixedToCamera = true;
-        this.footer.fixedToCamera = true;
+        this.uiframe = this.add.group();
+        this.uiframe.create(0, 0, 'header');
+        this.uiframe.create(0, 491, 'footer');
+        this.uiframe.fixedToCamera = true;
 
-        this.add.button(10, 500, 'prompt', this.promptOnce, this);
-        this.add.button(102, 500, 'add-time', this.addTime, this);
-        this.promptText = this.add.text(53, 506, this.sconfig.fr, {font: "15px Arial", fill: "#ffffff"});
+        this.uiframe.add(this.add.button(10, 503, 'prompt', this.promptOnce, this));
+        this.uiframe.add(this.add.button(102, 503, 'add-time', this.addTime, this));
+        this.promptText = this.add.text(54, 506, this.sconfig.fr, {font: "15px Arial", fill: "#ffffff"});
         this.levelText = this.add.text(305, 22, '', {font: "28px Arial", fill: "#ffffff"});
         this.levelText.anchor.setTo(0.5);
+        this.uiframe.add(this.promptText);
+        this.uiframe.add(this.levelText);
         // this.ready = true;
     },
 

@@ -8,8 +8,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  */
 class Find extends Admin_Controller
 {
-    private $imageWidth = 360;
-    private $imageHeight = 211;
+    private $whRange = array(
+        1 => '60*60',
+        2 => '60*90',
+        3 => '90*60',
+        4 => '90*90',
+    );
     public function __construct()
     {
         parent::__construct();
@@ -61,6 +65,7 @@ class Find extends Admin_Controller
         }
         $this->load->view('admin/find', $data);
     }
+
     public function tag()
     {
         $offset = intval($this->input->get('o'));
@@ -121,6 +126,22 @@ class Find extends Admin_Controller
         $this->load->view('admin/find_tag', $data);
     }
 
+    public function deleteTag($id = 0)
+    {
+        $data = array('code' => 0);
+        $tag = $this->find_tag_model->get_one(array('id' => $id));
+        if (!empty($tag)) {
+            $exist = $this->find_image_model->tag_image($id);
+            if ($exist['cnt'] > 0) {
+                $data['message'] = '有图片关联此标签，无法删除';
+            } else {
+                $this->find_tag_model->delete($id);
+                $data['code'] = 1;
+            }
+        }
+        echo json_encode($data);
+    }
+
     public function image()
     {
         $offset = intval($this->input->get('o'));
@@ -151,14 +172,16 @@ class Find extends Admin_Controller
     {
         $data = array(
             'image' => array(),
-            'taglist' => $this->find_tag_model->get_list();
+            'taglist' => $this->find_tag_model->get_list(),
             'status' => 0,
         );
+        $post = $this->input->post();
 
         if ($id) {
             $data['image'] = $findImage =$this->find_image_model->get_one(array('id' => $id));
-            if (!empty($data['image']['tag'])) {
-                $imageTag = explode(',', $data['image']['tag']);
+            $data['image']['path'] = site_url($this->config->item('find_image_path') . $findImage['file_name']);
+            if (!empty($data['image']['tags']) && empty($post)) {
+                $imageTag = explode(',', $data['image']['tags']);
                 foreach ($data['taglist'] as $key => $value) {
                     if (in_array($value['id'], $imageTag)) {
                         $data['taglist'][$key]['checked'] = true;
@@ -167,24 +190,28 @@ class Find extends Admin_Controller
             }
         }
 
-        $post = $this->input->post();
         if (!empty($post)) {
             $data['image']['title'] = $post['title'];
 
-            if (empty($post['tag'])) {
-                $data['error'] = '请选择标签';
-            }
             if (empty($data['error']) && !$id && $_FILES['up_image']['error'] == 4) {
                 $data['error'] = '请上传图片';
+            } elseif (empty($post['tags'])) {
+                $data['error'] = '请选择标签';
             }
 
             if (empty($data['error'])) {
+                foreach ($data['taglist'] as $key => $value) {
+                    if (in_array($value['id'], $post['tags'])) {
+                        $data['taglist'][$key]['checked'] = true;
+                    }
+                }
+
                 $currentTime = time();
                 if ($_FILES['up_image']['error'] != 4) {
                     $this->load->library('upload');
 
                     $upConfig = array(
-                        'file_name'     => $currentTime . pathinfo($_FILES['up_image_ori']['name'], PATHINFO_EXTENSION),
+                        'file_name'     => $currentTime,
                         'upload_path'   => FCPATH . $this->config->item('find_image_path'),
                         'allowed_types' => 'png|jpg|jpeg',
                         'max_size'      => $this->config->item('size_limit'),
@@ -198,17 +225,21 @@ class Find extends Admin_Controller
                         $data['error'] = '上传图片出错：' . $this->upload->display_errors();
                     } else {
                         $imagedata = $this->upload->data();
-                        $wh = $this->config->item('find_image_wh');
-                        if (!in_array($imagedata['image_width'] . '*' . $imagedata['image_height'], $wh)) {
+                        $type = array_search($imagedata['image_width'] . '*' . $imagedata['image_height'], $this->whRange);
+                        if (!$type) {
                             unlink($upConfig['upload_path'] . $imagedata['file_name']);
-                            $data['error'] = '请上传规定格式的图片：' . implode(',', $wh);
+                            $data['error'] = '请上传规定格式的图片：' . implode(',', $this->whRange);
+                        } else {
+                            $post['type'] = $type;
+                            $post['file_name'] = $imagedata['file_name'];
+                            $data['image']['path'] = site_url($this->config->item('find_image_path') . $imagedata['file_name']);
                         }
                         if (empty($data['error']) && $id && file_exists($upConfig['upload_path'] . $findImage['image'])) {
-                                unlink($upConfig['upload_path'] . $findImage['image']);
-                            }
+                            unlink($upConfig['upload_path'] . $findImage['image']);
                         }
                     }
                 }
+                $post['tags'] = implode(',', $post['tags']);
                 if ($id) {
                     $this->find_image_model->update($post, array('id' => $id));
                 } else {
@@ -219,6 +250,19 @@ class Find extends Admin_Controller
             }
         }
         $this->load->view('admin/find_image', $data);
+    }
+
+    public function deleteImage($id = 0)
+    {
+        $data = array('code' => 0);
+        $findImage = $this->find_image_model->get_one(array('id' => $id));
+        if (!empty($findImage)) {
+            $path = FCPATH . $this->config->item('find_image_path');
+            unlink($path . $findImage['file_name']);
+            $this->find_image_model->delete($id);
+            $data['code'] = 1;
+        }
+        echo json_encode($data);
     }
 
     public function statistic()

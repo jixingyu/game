@@ -114,7 +114,9 @@ class Spot extends Admin_Controller
         if (!empty($post)) {
             $data['image']['title'] = $post['title'];
 
-            if (count($post['coordinatex']) != 5 || count($post['coordinatey']) != 5) {
+            if (empty($data['error']) && !$id && ($_FILES['up_image_ori']['error'] == 4 || $_FILES['up_image_mod']['error'] == 4)) {
+                $data['error'] = '请上传图片';
+            } elseif (count($post['coordinatex']) != 5 || count($post['coordinatey']) != 5) {
                 $data['error'] = '请填写坐标';
             } else {
                 foreach ($post['coordinatex'] as $key => $value) {
@@ -137,23 +139,20 @@ class Spot extends Admin_Controller
                 $data['image']['coordinate'] = $post['coordinate'];
                 $post['coordinate'] = json_encode($post['coordinate']);
             }
-            if (empty($data['error']) && !$id && ($_FILES['up_image_ori']['error'] == 4 || $_FILES['up_image_mod']['error'] == 4)) {
-                $data['error'] = '请上传图片';
-            }
 
             if (empty($data['error'])) {
                 $this->load->library('upload');
                 $currentTime = time();
 
                 $upConfig = array(
-                    'file_name'     => $currentTime . 'o.' . pathinfo($_FILES['up_image_ori']['name'], PATHINFO_EXTENSION),
+                    'file_name'     => $currentTime . 'o',
                     'upload_path'   => FCPATH . $this->config->item('spot_image_path'),
                     'allowed_types' => 'png|jpg|jpeg',
                     'max_size'      => $this->config->item('size_limit'),
                     'overwrite'     => true,
                 );
 
-                if (!empty($spotImage['image_ori']) && $_FILES['up_image_ori']['error'] == 4) {
+                if ($_FILES['up_image_ori']['error'] == 4) {
                     $uploaded = true;
                 } else {
                     $this->upload->initialize($upConfig);
@@ -171,10 +170,10 @@ class Spot extends Admin_Controller
                         }
                     }
                     if (empty($data['error'])) {
-                        if (!empty($spotImage['image_mod']) && $_FILES['up_image_mod']['error'] == 4) {
+                        if ($_FILES['up_image_mod']['error'] == 4) {
                             $uploaded = true;
                         } else {
-                            $upConfig['file_name'] = $currentTime . 'm.' . pathinfo($_FILES['up_image_mod']['name'], PATHINFO_EXTENSION);
+                            $upConfig['file_name'] = $currentTime . 'm';
                             $this->upload->initialize($upConfig);
                             $uploaded = $this->upload->do_upload('up_image_mod');
                         }
@@ -224,6 +223,20 @@ class Spot extends Admin_Controller
             }
         }
         $this->load->view('admin/spot_image', $data);
+    }
+
+    public function deleteImage($id = 0)
+    {
+        $data = array('code' => 0);
+        $spotImage = $this->spot_image_model->get_one(array('id' => $id));
+        if (!empty($spotImage)) {
+            $path = FCPATH . $this->config->item('spot_image_path');
+            unlink($path . $spotImage['image_ori']);
+            unlink($path . $spotImage['image_mod']);
+            $this->spot_image_model->delete($id);
+            $data['code'] = 1;
+        }
+        echo json_encode($data);
     }
 
     public function statistic()
