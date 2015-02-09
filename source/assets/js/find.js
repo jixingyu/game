@@ -1,60 +1,82 @@
-function findmap(w, h, boxes) {
-	this.root = {
-		x : 0,
-		y : 40,
-		w : w,
-		h : h
-	}; //初始化二叉树根节点
-	this.init(boxes)
-};
+var testLen = 100;
+function matrix(w, h, quene) {
+    this.base = {w:30,h:30};
 
-findmap.prototype = {
-	init : function (boxes) {
-		var i;
-		for (i = 0; i < boxes.length; i++) {
-			var block = boxes[i];
-			var node = this.travel(this.root, block.w, block.h) //利用递归从根节点开始遍历二叉树,判断节点大小是否足够
-				//console.log(node)
-				if (node) { //如果节点大小足够
-					this.markAndCutNode(node, block.w, block.h) //给节点做标记，并拆分成右侧与下测
-					block.fit = true; //给小盒子做标记，并记录位置信息
-					block.x = node.x;
-					block.y = node.y;
-				};
-		}
-	},
-	//遍历二叉树
-	travel : function (root, w, h) {
-		if (root.filled) //已经放入盒子了，继续遍历子节点
-			return this.travel(root.right, w, h) || this.travel(root.down, w, h); //遍历右边与下边
-		else if ((w <= root.w) && (h <= root.h)) { //节点足够大,返回节点
-			return root
-		} else {
-			return null
-		}
-	},
-	//标记并拆分节点
-	markAndCutNode : function (node, w, h) {
-		node.filled = true; //标记节点为装入盒子状态
-		node.down = {
-			x : node.x,
-			y : node.y + h,
-			w : node.w,
-			h : node.h - h
-		}; //标记下侧出来
-		node.right = {
-			x : node.x + w,
-			y : node.y,
-			w : node.w - w,
-			h : h
-		}; //标记右侧出来
-	}
-	
+    this.mw = w / this.base.w;
+    this.mh = h / this.base.h;
+    this.mt = [];
+
+    for (i = 0; i < this.mw; i++) {
+        this.mt[i] = [];
+        for (j = 0; j < this.mh; j++) {
+            this.mt[i][j] = {
+                filled: false
+            };
+        }
+    }
+
+    for (k = 0; k < quene.length; k++) {
+        point = this.mscan(quene[k]);
+        if (point) {
+            quene[k].x = point.x * this.base.w;
+            quene[k].y = point.y * this.base.h + 40;
+            quene[k].active = true;
+        } else {
+            quene[k].active = false;
+        }
+    }
+}
+matrix.prototype = {
+    checkFill: function (i, j, row, col) {
+        for (m = 0; m < row; m++) {
+            for (n = 0; n < col; n++) {
+                if (this.mt[i+m][j+n].filled) {
+                    return {
+                        x: i+m,
+                        y: j+n,
+                        find: false
+                    };
+                }
+            }
+        }
+        return {find: true};
+    },
+
+    mscan: function (q) {
+        var row = q.w / this.base.w;
+        var col = q.h / this.base.h;
+        limitX = -1;
+        limitY = -1;
+        for (j = 0; j < this.mh - col + 1; j++) {
+            for (i = 0; i < this.mw - row + 1; i++) {
+                if (i <= limitX && j <= limitY) {
+                    continue;
+                }
+                res = this.checkFill(i, j, row, col);
+                if (res.find) {
+                    for (a = i; a < i + row; a++) {
+                        for (b = j; b < j + col; b++) {
+                            this.mt[a][b].filled = true;
+                        }
+                    }
+                    return {
+                        x: i,
+                        y: j
+                    };
+                } else {
+                    limitX = res.x;
+                    limitY = res.y;
+                }
+            }
+        }
+    }
 }
 
 var game = new Phaser.Game(360, 540, Phaser.AUTO, 'game');
 
 BasicGame = {
+    tags: [],
+    imageTags: []
 
     /* Here we've just got some global level vars that persist regardless of State swaps */
     // score: 0,
@@ -129,15 +151,16 @@ BasicGame.Preloader.prototype = {
         this.load.image('gamepoints','assets/gamepoints.png');
 
         var simages = this.cache.getJSON('sconfig').data.images;
-        var stags = this.cache.getJSON('sconfig').data.tags;
-        if (!simages || simages.length <= 0 || !stags || stags.length <= 0) {
+        BasicGame.tags = this.cache.getJSON('sconfig').data.tags;
+        if (!simages || simages.length <= 0) {
             sweetAlert('请检查网络');
             return;
         }
 
-        for (i=0;i<50;i++) {
+        for (i=0;i<testLen;i++) {
             var j = this.rnd.integerInRange(0, simages.length - 1);
-            this.load.image('test'+i,'assets/find/images/'+simages[j].file_name);
+            this.load.image('image' + i,'assets/find/images/'+simages[j].file_name);
+            BasicGame.imageTags[i] = simages[j].tags.split(",");
         }
         this.ready = true;
     },
@@ -214,14 +237,15 @@ BasicGame.MainMenu.prototype = {
 BasicGame.Game = function (game) {
     this.ready = false;
     this.scrollY = false;
-    this.usedImages = [];
-    this.leftImages = [];
+    this.activeImages = [];
+    this.deathImages = [];
 };
 
 BasicGame.Game.prototype = {
 
     init: function () {
         this.currentLevel = 0;
+        this.currentTag = '';
         this.promptTimes = 0;
         this.addtTimes = 0;
         this.currentId = 0;
@@ -245,22 +269,31 @@ BasicGame.Game.prototype = {
     create: function () {
 
         imgs=[];
-        for (i=0;i<50;i++) {
-            imgs.push({w:this.cache.getImage('test'+i).width,h:this.cache.getImage('test'+i).height});
+        for (i=0;i<testLen;i++) {
+            imgs.push({
+                w:this.cache.getImage('image'+i).width,
+                h:this.cache.getImage('image'+i).height
+            });
         }
 
         game.world.setBounds(0, 0, 360, 900);
         game.inputEnabled = true;
         game.input.onDown.add(this.beginScroll, this);
-        var newMap = new findmap(360, 810, imgs);
-console.log(imgs);
-        for (var n = 0; n < imgs.length; n++) {
-            var img = imgs[n];
-            if (img.fit) {
-                this.usedImages.push[img];
-                this.add.button(img.x, img.y, 'test'+n);
+
+        var mt = new matrix(360, 900, imgs);
+
+        for (var i = 0; i < imgs.length; i++) {
+            var img = imgs[i];
+            if (img.active) {
+                img.imgIndex = i;
+                this.activeImages.push(img);
+                var sp = this.add.sprite(img.x, img.y, 'image'+i);
+                sp.imgIndex = i;
+                sp.inputEnabled = true;
+                sp.events.onInputDown.add(this.checkBegin, this);
+                sp.events.onInputUp.add(this.check, this);
             } else {
-                this.leftImages.push[img];
+                this.deathImages.push(img);
             }
         }
 
@@ -272,16 +305,86 @@ console.log(imgs);
         this.uiframe.add(this.add.button(10, 503, 'prompt', this.promptOnce, this));
         this.uiframe.add(this.add.button(102, 503, 'add-time', this.addTime, this));
         this.promptText = this.add.text(54, 506, this.sconfig.fr, {font: "15px Arial", fill: "#ffffff"});
-        this.levelText = this.add.text(305, 22, '', {font: "28px Arial", fill: "#ffffff"});
+        this.levelText = this.add.text(305, 22, '', {font: "20px Arial", fill: "#ffffff"});
         this.levelText.anchor.setTo(0.5);
+        this.taskText = this.add.text(50, 22, '', {font: "20px Arial", fill: "#000000"});
+        this.taskText.anchor.setTo(0.5);
         this.uiframe.add(this.promptText);
         this.uiframe.add(this.levelText);
-        // this.ready = true;
+        this.uiframe.add(this.taskText);
+
+        this.timeText = this.add.text(300, 503, this.getRTime(), {font: "21px Arial", fill: "#000000"});
+        this.remainTimer = game.time.events.loop(Phaser.Timer.SECOND, this.updateTime, this);
+        this.uiframe.add(this.timeText);
+        this.nextLevel();
+        this.ready = true;
+    },
+
+    nextLevel: function () {
+        this.currentLevel++;
+        var j = this.rnd.integerInRange(0, this.activeImages.length - 1);
+        var k = this.rnd.integerInRange(0, BasicGame.imageTags[this.activeImages[j].imgIndex].length - 1);
+        this.currentTag = BasicGame.imageTags[this.activeImages[j].imgIndex][k];
+        var n = 0;
+        for (i = 0; i < this.activeImages.length; i++) {
+            for (m = 0; m < BasicGame.imageTags[this.activeImages[i].imgIndex].length; m++) {
+                if (BasicGame.imageTags[this.activeImages[i].imgIndex][m] == this.currentTag) {
+                    n++;
+                    break;
+                }
+            }
+        }
+        n = this.rnd.integerInRange(this.math.floor(n/2), n)
+        if (n > 10) {
+            n = 10;
+        }
+        this.levelText.setText('第 ' + this.currentLevel + ' 关');
+        this.taskText.setText(BasicGame.tags[this.currentTag] + ' × ' + n);
+    },
+
+    checkBegin: function (sprite, pointer) {
+        sprite.lastClick = game.time.now;
+    },
+
+    check: function (sprite, pointer) {
+        if (!this.ready || game.time.now-sprite.lastClick > 600) {
+            return;
+        }
+        for (i = 0; i < BasicGame.imageTags[sprite.imgIndex].length; i++) {
+            if (BasicGame.imageTags[sprite.imgIndex][i] == this.currentTag) {
+                //TODO
+            }
+        }
     },
 
     topHeadFoot: function () {
         game.world.bringToTop(this.header);
         game.world.bringToTop(this.footer);
+    },
+
+    getRTime: function () {
+        minutes = Math.floor(this.remainTime / 60);
+        seconds = this.remainTime % 60;
+
+        if (minutes < 10) minutes = '0' + minutes;
+        if (seconds < 10) seconds = '0' + seconds;
+
+        return minutes + ':' + seconds;
+    },
+
+    updateTime: function () {
+        if (!this.ready) {
+            return;
+        }
+        this.remainTime--;
+        if (this.remainTime <= 0) {
+            //TODO gameover
+            game.time.events.remove(this.remainTimer);
+            this.timeText.setText('00:00');
+            this.ready = false;
+        } else {
+            this.timeText.setText(this.getRTime());
+        }
     },
 
     promptOnce: function () {

@@ -28,7 +28,7 @@ class Find extends Front_Controller
 
         $this->load->model(array('find_image_model', 'find_tag_model'));
         $images = $this->find_image_model->get_images();
-        $tags = $this->find_tag_model->get_list();
+        $tags = $this->find_tag_model->get_tags();
 
         $this->response(array(
             'i'    => $config['initial_time'],
