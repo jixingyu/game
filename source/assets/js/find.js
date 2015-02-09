@@ -247,7 +247,10 @@ BasicGame.Game.prototype = {
         this.currentLevel = 0;
         this.currentTag = '';
         this.promptTimes = 0;
+        this.taskNum = 0;
+        this.found = [];
         this.addtTimes = 0;
+        this.currentId = 0;
         this.currentId = 0;
         this.ready = false;
         this.addPointsText = null;
@@ -264,6 +267,7 @@ BasicGame.Game.prototype = {
         this.sconfig.t  = parseInt(this.sconfig.t);
         this.sconfig.tp = parseInt(this.sconfig.tp);
         this.sconfig.mt = parseInt(this.sconfig.mt);
+        this.sconfig.prizeLevel = parseInt(this.sconfig.pl);
     },
 
     create: function () {
@@ -280,7 +284,7 @@ BasicGame.Game.prototype = {
         game.inputEnabled = true;
         game.input.onDown.add(this.beginScroll, this);
 
-        var mt = new matrix(360, 900, imgs);
+        var mt = new matrix(360, 810, imgs);
 
         for (var i = 0; i < imgs.length; i++) {
             var img = imgs[i];
@@ -307,8 +311,8 @@ BasicGame.Game.prototype = {
         this.promptText = this.add.text(54, 506, this.sconfig.fr, {font: "15px Arial", fill: "#ffffff"});
         this.levelText = this.add.text(305, 22, '', {font: "20px Arial", fill: "#ffffff"});
         this.levelText.anchor.setTo(0.5);
-        this.taskText = this.add.text(50, 22, '', {font: "20px Arial", fill: "#000000"});
-        this.taskText.anchor.setTo(0.5);
+        this.taskText = this.add.text(20, 22, '', {font: "20px Arial", fill: "#000000"});
+        this.taskText.anchor.setTo(0, 0.5);
         this.uiframe.add(this.promptText);
         this.uiframe.add(this.levelText);
         this.uiframe.add(this.taskText);
@@ -316,12 +320,27 @@ BasicGame.Game.prototype = {
         this.timeText = this.add.text(300, 503, this.getRTime(), {font: "21px Arial", fill: "#000000"});
         this.remainTimer = game.time.events.loop(Phaser.Timer.SECOND, this.updateTime, this);
         this.uiframe.add(this.timeText);
-        this.nextLevel();
-        this.ready = true;
+
+        var _self = this;
+        ajax({
+            url: '/find/begin',
+            data: {},
+            onSuccess: function(data) {
+                var resp = JSON.parse(data);
+                if (resp.code == 0) {
+                    _self.currentId = resp.data.i;
+                    _self.ready = true;
+                    _self.nextLevel();
+                } else {
+                    ajaxError(resp.code);
+                }
+            },
+        });
     },
 
     nextLevel: function () {
         this.currentLevel++;
+        this.found = [];
         var j = this.rnd.integerInRange(0, this.activeImages.length - 1);
         var k = this.rnd.integerInRange(0, BasicGame.imageTags[this.activeImages[j].imgIndex].length - 1);
         this.currentTag = BasicGame.imageTags[this.activeImages[j].imgIndex][k];
@@ -334,12 +353,57 @@ BasicGame.Game.prototype = {
                 }
             }
         }
-        n = this.rnd.integerInRange(this.math.floor(n/2), n)
-        if (n > 10) {
-            n = 10;
+        this.taskNum = this.rnd.integerInRange(this.math.floor(n/2), n)
+        if (this.taskNum > 10) {
+            this.taskNum = 10;
         }
         this.levelText.setText('第 ' + this.currentLevel + ' 关');
-        this.taskText.setText(BasicGame.tags[this.currentTag] + ' × ' + n);
+        this.taskText.setText(BasicGame.tags[this.currentTag] + ' × ' + this.taskNum);
+    },
+
+    findOne: function (imgIndex) {
+        this.found.push(imgIndex);
+        if (this.found.length < this.taskNum) {
+            return;
+        }
+        for (i = 0; i < this.sconfig.prizeLevel; i++) {
+            if (this.currentLevel == this.sconfig.prizeLevel[i]) {
+                var _self = this;
+                ajax({
+                    url: '/find/finish',
+                    data: {
+                        i: this.currentId,
+                        level: this.currentLevel
+                    },
+                    onSuccess: function(data) {
+                        var resp = JSON.parse(data);
+                        if (resp.code == 0) {
+                            if (resp.data && resp.data.points) {
+                                _self.showPoints('奖励' + resp.data.points + '积分');
+                            }
+                            _self.nextLevel();
+                        } else {
+                            ajaxError(resp.code);
+                        }
+                    },
+                });
+                return;
+            }
+        }
+    },
+
+    showPoints: function (points) {
+        if (!this.addPointsText) {
+            this.addPointsText = this.add.text(game.world.centerX, 30, points, {font: "20px Arial", fill: "#A6E22E"});
+            this.addPointsText.anchor.setTo(0.5);
+            this.addPointsText.alpha = 0;
+        } else {
+            this.addPointsText.setText(points);
+            game.world.bringToTop(this.addPointsText);
+        }
+        var t = game.add.tween(this.addPointsText).to({ alpha: 1 }, 1000, Phaser.Easing.Linear.None);
+        t.to({ alpha: 0 }, 500, Phaser.Easing.Linear.None);
+        t.start();
     },
 
     checkBegin: function (sprite, pointer) {
@@ -350,11 +414,19 @@ BasicGame.Game.prototype = {
         if (!this.ready || game.time.now-sprite.lastClick > 600) {
             return;
         }
-        for (i = 0; i < BasicGame.imageTags[sprite.imgIndex].length; i++) {
-            if (BasicGame.imageTags[sprite.imgIndex][i] == this.currentTag) {
-                //TODO
+        for (i = 0; i < this.found.length; i++) {
+            if (sprite.imgIndex == this.found[i]) {
+                return;
             }
         }
+        for (i = 0; i < BasicGame.imageTags[sprite.imgIndex].length; i++) {
+            if (BasicGame.imageTags[sprite.imgIndex][i] == this.currentTag) {
+                this.remainTime += this.sconfig.at;
+                this.findOne(sprite.imgIndex);
+                return;
+            }
+        }
+        this.remainTime -= this.sconfig.st;
     },
 
     topHeadFoot: function () {
@@ -400,13 +472,13 @@ BasicGame.Game.prototype = {
             } else {
                 var _self = this;
                 ajax({
-                    url: '/spot/prompt',
+                    url: '/find/prompt',
                     data: {i:this.currentId},
                     onSuccess: function(data) {
                         var resp = JSON.parse(data);
                         if (resp.code == 0) {
                             _self.userPoints -= _self.sconfig.rp;
-                            if (_self.found < 4) {
+                            if (_self.found.length < this.taskNum) {
                                 _self.showPoints('-' + _self.sconfig.rp);
                             }
                             _self.doPrompt();
@@ -423,14 +495,19 @@ BasicGame.Game.prototype = {
     },
 
     doPrompt: function () {
-        this.promptTimes++;
-        promptpoint = this.currentImage.coordinate.pop();
-        this.circles.drawCircle(promptpoint.x, 44 + promptpoint.y, promptpoint.iradius * 2);
-        this.circles.drawCircle(promptpoint.x, 274 + promptpoint.y, promptpoint.iradius * 2);
-        this.found++;
-
-        if (this.found == 5) {
-            this.finishOne();
+        for (i = 0; i < this.activeImages.length; i++) {
+            for (m = 0; m < BasicGame.imageTags[this.activeImages[i].imgIndex].length; m++) {
+                if (BasicGame.imageTags[this.activeImages[i].imgIndex][m] == this.currentTag) {
+                    this.promptTimes++;
+                    if (this.activeImages[i].y > game.camera.y + 400) {
+                        game.camera.y += this.activeImages[i].y - game.camera.y - 400 + this.activeImages.h;
+                    } else if (this.activeImages[i].y < game.camera.y + 40) {
+                        game.camera.y -= game.camera.y + 40 - this.activeImages[i].y + this.activeImages.h;
+                    }
+                    this.findOne(this.activeImages[i].imgIndex);
+                    return;
+                }
+            }
         }
     },
 
@@ -446,7 +523,7 @@ BasicGame.Game.prototype = {
         } else {
             var _self = this;
             ajax({
-                url: '/spot/timer',
+                url: '/find/timer',
                 data: {i:this.currentId},
                 onSuccess: function(data) {
                     var resp = JSON.parse(data);

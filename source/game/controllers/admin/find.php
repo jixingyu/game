@@ -234,8 +234,8 @@ class Find extends Admin_Controller
                             $post['file_name'] = $imagedata['file_name'];
                             $data['image']['path'] = site_url($this->config->item('find_image_path') . $imagedata['file_name']);
                         }
-                        if (empty($data['error']) && $id && file_exists($upConfig['upload_path'] . $findImage['image'])) {
-                            unlink($upConfig['upload_path'] . $findImage['image']);
+                        if (empty($data['error']) && $id && file_exists($upConfig['upload_path'] . $findImage['file_name'])) {
+                            unlink($upConfig['upload_path'] . $findImage['file_name']);
                         }
                     }
                 }

@@ -29,6 +29,12 @@ class Find extends Front_Controller
         $this->load->model(array('find_image_model', 'find_tag_model'));
         $images = $this->find_image_model->get_images();
         $tags = $this->find_tag_model->get_tags();
+        $prizeLevel = array();
+        if (!empty($config['mission'])) {
+            foreach (json_decode($config['mission'], true) as $value) {
+                $prizeLevel[] = intval($value['level']);
+            }
+        }
 
         $this->response(array(
             'i'    => $config['initial_time'],
