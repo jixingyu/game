@@ -118,6 +118,15 @@ function rndArray(arr) {
   arr = ret;
 }
 
+function inArray(ele, arr) {
+  for (var i = 0; i < arr.length; i++) {
+    if (ele == arr[i]) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function ajaxError(errorCode) {
   console.log(errorCode);
 }

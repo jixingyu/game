@@ -271,7 +271,6 @@ BasicGame.Game.prototype = {
     },
 
     create: function () {
-
         imgs=[];
         for (i=0;i<testLen;i++) {
             imgs.push({
@@ -289,14 +288,14 @@ BasicGame.Game.prototype = {
         for (var i = 0; i < imgs.length; i++) {
             var img = imgs[i];
             if (img.active) {
-                img.imgIndex = i;
-                this.activeImages.push(img);
                 var sp = this.add.sprite(img.x, img.y, 'image'+i);
                 sp.imgIndex = i;
                 sp.inputEnabled = true;
                 sp.events.onInputDown.add(this.checkBegin, this);
                 sp.events.onInputUp.add(this.check, this);
+                this.activeImages.push(sp);
             } else {
+                img.imgIndex = i;
                 this.deathImages.push(img);
             }
         }
@@ -346,11 +345,8 @@ BasicGame.Game.prototype = {
         this.currentTag = BasicGame.imageTags[this.activeImages[j].imgIndex][k];
         var n = 0;
         for (i = 0; i < this.activeImages.length; i++) {
-            for (m = 0; m < BasicGame.imageTags[this.activeImages[i].imgIndex].length; m++) {
-                if (BasicGame.imageTags[this.activeImages[i].imgIndex][m] == this.currentTag) {
-                    n++;
-                    break;
-                }
+            if (inArray(this.currentTag, BasicGame.imageTags[this.activeImages[i].imgIndex])) {
+                n++;
             }
         }
         this.taskNum = this.rnd.integerInRange(this.math.floor(n/2), n)
@@ -361,40 +357,79 @@ BasicGame.Game.prototype = {
         this.taskText.setText(BasicGame.tags[this.currentTag] + ' × ' + this.taskNum);
     },
 
-    findOne: function (imgIndex) {
-        this.found.push(imgIndex);
+    findOne: function (sprite) {
+        this.found.push(sprite.imgIndex);
+        this.add.tween(sprite).to({ alpha: 0 }, 500, Phaser.Easing.Linear.None, true).onComplete.add(function() {
+            var swap = null;
+            for (var i = 0; i < this.deathImages.length; i++) {
+                if (this.deathImages[i].w == sprite.width && this.deathImages[i].h == sprite.height) {
+                    if (inArray(this.currentTag, BasicGame.imageTags[this.deathImages[i].imgIndex])) {
+                        if (!swap) {
+                            swap = i;
+                        }
+                        continue;
+                    }
+                    sprite.loadTexture('image'+this.deathImages[i].imgIndex);
+                    this.add.tween(sprite).to({ alpha: 1 }, 500, Phaser.Easing.Linear.None, true);
+                    var tmp = {
+                        w: sprite.width,
+                        h: sprite.height,
+                        imgIndex: sprite.imgIndex
+                    };
+                    sprite.imgIndex = this.deathImages[i].imgIndex;
+                    this.deathImages.splice(i, 1);
+                    this.deathImages.push(tmp);
+                    break;
+                }
+            }
+            if (swap != null) {
+                sprite.loadTexture('image'+this.deathImages[swap].imgIndex);
+                this.add.tween(sprite).to({ alpha: 1 }, 500, Phaser.Easing.Linear.None, true);
+                var tmp = {
+                    w: sprite.width,
+                    h: sprite.height,
+                    imgIndex: sprite.imgIndex
+                };
+                sprite.imgIndex = this.deathImages[swap].imgIndex;
+                this.deathImages.splice(swap, 1);
+                this.deathImages.push(tmp);
+            }
+        }, this);
+
         if (this.found.length < this.taskNum) {
+            this.taskText.setText(BasicGame.tags[this.currentTag] + ' × ' + (this.taskNum - this.found.length));
             return;
         }
-        for (i = 0; i < this.sconfig.prizeLevel; i++) {
-            if (this.currentLevel == this.sconfig.prizeLevel[i]) {
-                var _self = this;
-                ajax({
-                    url: '/find/finish',
-                    data: {
-                        i: this.currentId,
-                        level: this.currentLevel
-                    },
-                    onSuccess: function(data) {
-                        var resp = JSON.parse(data);
-                        if (resp.code == 0) {
-                            if (resp.data && resp.data.points) {
-                                _self.showPoints('奖励' + resp.data.points + '积分');
-                            }
-                            _self.nextLevel();
-                        } else {
-                            ajaxError(resp.code);
+
+        if (inArray(this.currentLevel, this.sconfig.prizeLevel)) {
+            var flag = false;
+            var _self = this;
+            ajax({
+                url: '/find/finish',
+                data: {
+                    i: this.currentId,
+                    level: this.currentLevel
+                },
+                onSuccess: function(data) {
+                    var resp = JSON.parse(data);
+                    if (resp.code == 0) {
+                        if (resp.data && resp.data.points) {
+                            _self.showPoints('奖励' + resp.data.points + '积分');
                         }
-                    },
-                });
-                return;
-            }
+                        _self.nextLevel();
+                    } else {
+                        ajaxError(resp.code);
+                    }
+                },
+            });
+            return;
         }
+        this.nextLevel();
     },
 
     showPoints: function (points) {
         if (!this.addPointsText) {
-            this.addPointsText = this.add.text(game.world.centerX, 30, points, {font: "20px Arial", fill: "#A6E22E"});
+            this.addPointsText = this.add.text(game.world.centerX, 22, points, {font: "25px Arial", fill: "#3DA3EF"});
             this.addPointsText.anchor.setTo(0.5);
             this.addPointsText.alpha = 0;
         } else {
@@ -411,20 +446,16 @@ BasicGame.Game.prototype = {
     },
 
     check: function (sprite, pointer) {
-        if (!this.ready || game.time.now-sprite.lastClick > 600) {
+        if (!this.ready || game.time.now-sprite.lastClick > 400) {
             return;
         }
-        for (i = 0; i < this.found.length; i++) {
-            if (sprite.imgIndex == this.found[i]) {
-                return;
-            }
+        if (inArray(sprite.imgIndex, this.found)) {
+            return;
         }
-        for (i = 0; i < BasicGame.imageTags[sprite.imgIndex].length; i++) {
-            if (BasicGame.imageTags[sprite.imgIndex][i] == this.currentTag) {
-                this.remainTime += this.sconfig.at;
-                this.findOne(sprite.imgIndex);
-                return;
-            }
+        if (inArray(this.currentTag, BasicGame.imageTags[sprite.imgIndex])) {
+            this.remainTime += this.sconfig.at;
+            this.findOne(sprite);
+            return;
         }
         this.remainTime -= this.sconfig.st;
     },
@@ -478,7 +509,7 @@ BasicGame.Game.prototype = {
                         var resp = JSON.parse(data);
                         if (resp.code == 0) {
                             _self.userPoints -= _self.sconfig.rp;
-                            if (_self.found.length < this.taskNum) {
+                            if (_self.found.length < _self.taskNum) {
                                 _self.showPoints('-' + _self.sconfig.rp);
                             }
                             _self.doPrompt();
@@ -495,18 +526,16 @@ BasicGame.Game.prototype = {
     },
 
     doPrompt: function () {
-        for (i = 0; i < this.activeImages.length; i++) {
-            for (m = 0; m < BasicGame.imageTags[this.activeImages[i].imgIndex].length; m++) {
-                if (BasicGame.imageTags[this.activeImages[i].imgIndex][m] == this.currentTag) {
-                    this.promptTimes++;
-                    if (this.activeImages[i].y > game.camera.y + 400) {
-                        game.camera.y += this.activeImages[i].y - game.camera.y - 400 + this.activeImages.h;
-                    } else if (this.activeImages[i].y < game.camera.y + 40) {
-                        game.camera.y -= game.camera.y + 40 - this.activeImages[i].y + this.activeImages.h;
-                    }
-                    this.findOne(this.activeImages[i].imgIndex);
-                    return;
+        for (var i = 0; i < this.activeImages.length; i++) {
+            if (inArray(this.currentTag, BasicGame.imageTags[this.activeImages[i].imgIndex])) {
+                this.promptTimes++;
+                if (this.activeImages[i].y > game.camera.y + 400) {
+                    game.camera.y += this.activeImages[i].y - game.camera.y - 400 + this.activeImages.h;
+                } else if (this.activeImages[i].y < game.camera.y + 40) {
+                    game.camera.y -= game.camera.y + 40 - this.activeImages[i].y + this.activeImages.h;
                 }
+                this.findOne(this.activeImages[i]);
+                return;
             }
         }
     },
