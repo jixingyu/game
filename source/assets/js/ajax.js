@@ -108,16 +108,6 @@
 
 })();
 
-function rndArray(arr) {
-
-  var ret = [];
-  var len = arr.length;
-  for (var i = 0 ;i < len ;i++){
-    ret.push(arr.splice(Math.floor(Math.random()*arr.length) , 1));
-  }
-  arr = ret;
-}
-
 function inArray(ele, arr) {
   for (var i = 0; i < arr.length; i++) {
     if (ele == arr[i]) {

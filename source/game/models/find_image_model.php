@@ -16,7 +16,7 @@ class Find_image_model extends MY_Model
         return $query->row_array();
     }
 
-    public function get_images($limit = 20)
+    public function get_images($limit = 200)
     {
         $sql = "select tags,type,file_name from {$this->table} limit {$limit}";
         $query=$this->db->query($sql);

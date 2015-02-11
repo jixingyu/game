@@ -1,4 +1,3 @@
-var testLen = 100;
 function matrix(w, h, quene) {
     this.base = {w:30,h:30};
 
@@ -157,11 +156,14 @@ BasicGame.Preloader.prototype = {
             return;
         }
 
-        for (i=0;i<testLen;i++) {
-            var j = this.rnd.integerInRange(0, simages.length - 1);
-            this.load.image('image' + i,'assets/find/images/'+simages[j].file_name);
-            BasicGame.imageTags[i] = simages[j].tags.split(",");
+        var len = simages.length;
+        for (var i = 0 ; i < len; i++) {
+            var tmp = simages.splice(Math.floor(Math.random()*simages.length) , 1);
+            tmp = tmp[0];
+            this.load.image('image' + i,'assets/find/images/'+tmp.file_name);
+            BasicGame.imageTags[i] = tmp.tags.split(",");
         }
+
         this.ready = true;
     },
 
@@ -271,8 +273,8 @@ BasicGame.Game.prototype = {
     },
 
     create: function () {
-        imgs=[];
-        for (i=0;i<testLen;i++) {
+        imgs = [];
+        for (var i = 0; i< BasicGame.imageTags.length; i++) {
             imgs.push({
                 w:this.cache.getImage('image'+i).width,
                 h:this.cache.getImage('image'+i).height
@@ -350,8 +352,8 @@ BasicGame.Game.prototype = {
             }
         }
         this.taskNum = this.rnd.integerInRange(this.math.floor(n/2), n)
-        if (this.taskNum > 10) {
-            this.taskNum = 10;
+        if (this.taskNum > 7) {
+            this.taskNum = 7;
         }
         this.levelText.setText('第 ' + this.currentLevel + ' 关');
         this.taskText.setText(BasicGame.tags[this.currentTag] + ' × ' + this.taskNum);
@@ -497,7 +499,7 @@ BasicGame.Game.prototype = {
         if (this.promptTimes >= this.sconfig.fr + this.sconfig.mr) {
             sweetAlert('每轮最多购买' + this.sconfig.mr + '次提醒');
         } else if (this.promptTimes >= this.sconfig.fr) {
-            if (this.userPoints < this.sconfig.rp) {
+            if (userPoints < this.sconfig.rp) {
                 sweetAlert('您的积分不够');
                 return;
             } else {
@@ -508,7 +510,7 @@ BasicGame.Game.prototype = {
                     onSuccess: function(data) {
                         var resp = JSON.parse(data);
                         if (resp.code == 0) {
-                            _self.userPoints -= _self.sconfig.rp;
+                            userPoints -= _self.sconfig.rp;
                             if (_self.found.length < _self.taskNum) {
                                 _self.showPoints('-' + _self.sconfig.rp);
                             }
@@ -530,9 +532,9 @@ BasicGame.Game.prototype = {
             if (inArray(this.currentTag, BasicGame.imageTags[this.activeImages[i].imgIndex])) {
                 this.promptTimes++;
                 if (this.activeImages[i].y > game.camera.y + 400) {
-                    game.camera.y += this.activeImages[i].y - game.camera.y - 400 + this.activeImages.h;
+                    game.camera.y += this.activeImages[i].y - game.camera.y - 400 + this.activeImages[i].height;
                 } else if (this.activeImages[i].y < game.camera.y + 40) {
-                    game.camera.y -= game.camera.y + 40 - this.activeImages[i].y + this.activeImages.h;
+                    game.camera.y = 40 - this.activeImages[i].y + this.activeImages[i].height;
                 }
                 this.findOne(this.activeImages[i]);
                 return;
@@ -546,7 +548,7 @@ BasicGame.Game.prototype = {
         }
         if (this.addtTimes >= this.sconfig.mt) {
             sweetAlert('每轮最多加时' + this.sconfig.mt + '次');
-        } else if (this.userPoints < this.sconfig.t) {
+        } else if (userPoints < this.sconfig.t) {
             sweetAlert('您的积分不够');
             return;
         } else {
@@ -557,7 +559,7 @@ BasicGame.Game.prototype = {
                 onSuccess: function(data) {
                     var resp = JSON.parse(data);
                     if (resp.code == 0) {
-                        _self.userPoints -= _self.sconfig.tp;
+                        userPoints -= _self.sconfig.tp;
                         _self.remainTime += _self.sconfig.t;
                         _self.showPoints('-' + _self.sconfig.tp);
                         _self.addtTimes++;

@@ -420,7 +420,7 @@ BasicGame.Game.prototype = {
         if (this.promptTimes >= this.sconfig.fr + this.sconfig.mr) {
             sweetAlert('每轮最多购买' + this.sconfig.mr + '次提醒');
         } else if (this.promptTimes >= this.sconfig.fr) {
-            if (this.userPoints < this.sconfig.rp) {
+            if (userPoints < this.sconfig.rp) {
                 sweetAlert('您的积分不够');
                 return;
             } else {
@@ -431,7 +431,7 @@ BasicGame.Game.prototype = {
                     onSuccess: function(data) {
                         var resp = JSON.parse(data);
                         if (resp.code == 0) {
-                            _self.userPoints -= _self.sconfig.rp;
+                            userPoints -= _self.sconfig.rp;
                             if (_self.found < 4) {
                                 _self.showPoints('-' + _self.sconfig.rp);
                             }
@@ -466,7 +466,7 @@ BasicGame.Game.prototype = {
         }
         if (this.addtTimes >= this.sconfig.mt) {
             sweetAlert('每轮最多加时' + this.sconfig.mt + '次');
-        } else if (this.userPoints < this.sconfig.t) {
+        } else if (userPoints < this.sconfig.t) {
             sweetAlert('您的积分不够');
             return;
         } else {
@@ -477,7 +477,7 @@ BasicGame.Game.prototype = {
                 onSuccess: function(data) {
                     var resp = JSON.parse(data);
                     if (resp.code == 0) {
-                        _self.userPoints -= _self.sconfig.tp;
+                        userPoints -= _self.sconfig.tp;
                         _self.remainTime += _self.sconfig.t;
                         _self.showPoints('-' + _self.sconfig.tp);
                         _self.addtTimes++;

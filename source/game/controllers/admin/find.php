@@ -115,8 +115,10 @@ class Find extends Admin_Controller
 
             if (empty($data['error'])) {
                 if ($id) {
+                    $post['update_time'] = time();
                     $this->find_tag_model->update($post, array('id' => $id));
                 } else {
+                    $post['create_time'] = $post['update_time'] = time();
                     $data['tag']['id'] = $this->find_tag_model->insert($post);
                 }
 
@@ -178,7 +180,10 @@ class Find extends Admin_Controller
         $post = $this->input->post();
 
         if ($id) {
-            $data['image'] = $findImage =$this->find_image_model->get_one(array('id' => $id));
+            $data['image'] = $findImage = $this->find_image_model->get_one(array('id' => $id));
+            if (empty($findImage)) {
+                show_404();
+            }
             $data['image']['path'] = site_url($this->config->item('find_image_path') . $findImage['file_name']);
             if (!empty($data['image']['tags']) && empty($post)) {
                 $imageTag = explode(',', $data['image']['tags']);
