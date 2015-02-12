@@ -51,7 +51,7 @@
 
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        奖励设定(每账号限1次)
+                        奖励设定
                     </div>
                     <!-- /.panel-heading -->
                     <div class="panel-body">

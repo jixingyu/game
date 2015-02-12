@@ -244,9 +244,12 @@ BasicGame.Game.prototype = {
         this.ready = false;
         if (this.simages.length <= 0) {
             game.time.events.add(Phaser.Timer.SECOND, function(){
-                sweetAlert('恭喜通关！');
-                this.state.start('MainMenu');
-                // TODO
+                var _self = this;
+                sweetAlert({
+                    title: "恭喜通关！"
+                }, function(){
+                    _self.state.start('MainMenu');
+                });
             }, this).autoDestroy = true;
         } else if (this.currentLevel > 0) {
             if (!this.nextText) {
@@ -375,10 +378,16 @@ BasicGame.Game.prototype = {
         }
         this.remainTime--;
         if (this.remainTime <= 0) {
-            //TODO gameover
             game.time.events.remove(this.remainTimer);
             this.timeText.setText('00:00');
             this.ready = false;
+
+            var _self = this;
+            sweetAlert({
+                title: "时间到！"
+            }, function(){
+                _self.state.start('MainMenu');
+            });
         } else {
             this.timeText.setText(this.getRTime());
         }
@@ -420,7 +429,7 @@ BasicGame.Game.prototype = {
         if (this.promptTimes >= this.sconfig.fr + this.sconfig.mr) {
             sweetAlert('每轮最多购买' + this.sconfig.mr + '次提醒');
         } else if (this.promptTimes >= this.sconfig.fr) {
-            if (userPoints < this.sconfig.rp) {
+            if (userpoints < this.sconfig.rp) {
                 sweetAlert('您的积分不够');
                 return;
             } else {
@@ -431,7 +440,7 @@ BasicGame.Game.prototype = {
                     onSuccess: function(data) {
                         var resp = JSON.parse(data);
                         if (resp.code == 0) {
-                            userPoints -= _self.sconfig.rp;
+                            userpoints -= _self.sconfig.rp;
                             if (_self.found < 4) {
                                 _self.showPoints('-' + _self.sconfig.rp);
                             }
@@ -466,7 +475,7 @@ BasicGame.Game.prototype = {
         }
         if (this.addtTimes >= this.sconfig.mt) {
             sweetAlert('每轮最多加时' + this.sconfig.mt + '次');
-        } else if (userPoints < this.sconfig.t) {
+        } else if (userpoints < this.sconfig.t) {
             sweetAlert('您的积分不够');
             return;
         } else {
@@ -477,7 +486,7 @@ BasicGame.Game.prototype = {
                 onSuccess: function(data) {
                     var resp = JSON.parse(data);
                     if (resp.code == 0) {
-                        userPoints -= _self.sconfig.tp;
+                        userpoints -= _self.sconfig.tp;
                         _self.remainTime += _self.sconfig.t;
                         _self.showPoints('-' + _self.sconfig.tp);
                         _self.addtTimes++;

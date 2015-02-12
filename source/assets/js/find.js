@@ -185,7 +185,7 @@ BasicGame.MainMenu = function (game) {
 
 BasicGame.MainMenu.prototype = {
 
-    create: function () {this.startGame();
+    create: function () {
         this.add.sprite(0, 0, 'menu-header');
         var grouppoints = this.add.group();
         grouppoints.create(0, 100, 'gamepoints');
@@ -239,13 +239,13 @@ BasicGame.MainMenu.prototype = {
 BasicGame.Game = function (game) {
     this.ready = false;
     this.scrollY = false;
-    this.activeImages = [];
-    this.deathImages = [];
 };
 
 BasicGame.Game.prototype = {
 
     init: function () {
+        this.activeImages = [];
+        this.deathImages = [];
         this.currentLevel = 0;
         this.currentTag = '';
         this.promptTimes = 0;
@@ -483,10 +483,16 @@ BasicGame.Game.prototype = {
         }
         this.remainTime--;
         if (this.remainTime <= 0) {
-            //TODO gameover
             game.time.events.remove(this.remainTimer);
             this.timeText.setText('00:00');
             this.ready = false;
+
+            var _self = this;
+            sweetAlert({
+                title: "时间到！"
+            }, function(){
+                _self.state.start('MainMenu');
+            });
         } else {
             this.timeText.setText(this.getRTime());
         }
@@ -499,7 +505,7 @@ BasicGame.Game.prototype = {
         if (this.promptTimes >= this.sconfig.fr + this.sconfig.mr) {
             sweetAlert('每轮最多购买' + this.sconfig.mr + '次提醒');
         } else if (this.promptTimes >= this.sconfig.fr) {
-            if (userPoints < this.sconfig.rp) {
+            if (userpoints < this.sconfig.rp) {
                 sweetAlert('您的积分不够');
                 return;
             } else {
@@ -510,7 +516,7 @@ BasicGame.Game.prototype = {
                     onSuccess: function(data) {
                         var resp = JSON.parse(data);
                         if (resp.code == 0) {
-                            userPoints -= _self.sconfig.rp;
+                            userpoints -= _self.sconfig.rp;
                             if (_self.found.length < _self.taskNum) {
                                 _self.showPoints('-' + _self.sconfig.rp);
                             }
@@ -548,7 +554,7 @@ BasicGame.Game.prototype = {
         }
         if (this.addtTimes >= this.sconfig.mt) {
             sweetAlert('每轮最多加时' + this.sconfig.mt + '次');
-        } else if (userPoints < this.sconfig.t) {
+        } else if (userpoints < this.sconfig.t) {
             sweetAlert('您的积分不够');
             return;
         } else {
@@ -559,7 +565,7 @@ BasicGame.Game.prototype = {
                 onSuccess: function(data) {
                     var resp = JSON.parse(data);
                     if (resp.code == 0) {
-                        userPoints -= _self.sconfig.tp;
+                        userpoints -= _self.sconfig.tp;
                         _self.remainTime += _self.sconfig.t;
                         _self.showPoints('-' + _self.sconfig.tp);
                         _self.addtTimes++;
@@ -572,7 +578,7 @@ BasicGame.Game.prototype = {
     },
 
     update: function () {
-        if (game.input.activePointer.isDown) {
+        if (this.ready && game.input.activePointer.isDown) {
             game.camera.y += this.scrollY - game.input.activePointer.y;
             this.scrollY = game.input.activePointer.y;
         }
