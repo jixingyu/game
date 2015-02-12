@@ -13,9 +13,6 @@ class Szstage
     public function __construct()
     {
         $this->CI =& get_instance();
-        // $this->CI->load->database();
-        // $this->CI->load->model('admin_member_model');
-
     }
 
     public function signin()
@@ -37,27 +34,22 @@ class Szstage
     {
         $token = $this->CI->cache->get('szstage_token');
         if (empty($token)) {
-            $data = $this->signin();
-            if (!empty($data)) {
-                $token = json_decode($data, true);
-                if ($token['ReturnCode'] == 1) {
-                    $this->CI->cache->save('szstage_token', array(
-                        'token' => $token['Token'],
-                        'expire' => strtotime($token['ExpiresTime']) - $this->marginTime,
-                    ), 86400);
-                    return $token['Token'];
-                }
+            $token = $this->signin();
+            if (!empty($token)) {
+                $this->CI->cache->save('szstage_token', array(
+                    'token' => $token['Token'],
+                    'expire' => strtotime($token['ExpiresTime']) - $this->marginTime,
+                ), 86400);
+                return $token['Token'];
             }
         } else {
             if ($token['expire'] < time()) {
                 $resignToken = $this->resign($token['Token']);
-                if ($resignToken['ReturnCode'] == 1) {
-                    $this->CI->cache->save('szstage_token', array(
-                        'token' => $token['Token'],
-                        'expire' => strtotime($resignToken['ExpiresTime']) - $this->marginTime,
-                    ), 86400);
-                    return $token['token'];
-                }
+                $this->CI->cache->save('szstage_token', array(
+                    'token' => $token['Token'],
+                    'expire' => strtotime($resignToken['ExpiresTime']) - $this->marginTime,
+                ), 86400);
+                return $token['token'];
             } else {
                 return $token['token'];
             }
@@ -77,17 +69,17 @@ class Szstage
 
     public function modify_game_points($user, $points)
     {
-        // $token = $this->token();
-        // if (empty($token)) {
-        //     return false;
-        // }
-        // $para = $this->_signature(array(
-        //     'Token'      => $token,
-        //     'UserId'     => $user['uid'],
-        //     'PwdMd5'     => $user['PwdMd5'],
-        //     'Points'     => $points,
-        // ));
-        // return $this->curl_post('Points/ModifyGamePoints', $para);
+        $token = $this->token();
+        if (empty($token)) {
+            return false;
+        }
+        $para = $this->_signature(array(
+            'Token'      => $token,
+            'UserId'     => $user['uid'],
+            'PwdMd5'     => $user['PwdMd5'],
+            'Points'     => $points,
+        ));
+        return $this->curl_post('Points/ModifyGamePoints', $para);
     }
 
     public function get_by_mobile($mobile, $pwd)
@@ -127,6 +119,15 @@ class Szstage
         $data = curl_exec($ch);
         curl_close($ch);
 
-        return empty($data) ? null : json_decode($data, true);
+        if (empty($data)) {
+            return false;
+        } else {
+            $data = json_decode($data, true);
+            if ($data['ReturnCode'] == 1) {
+                return $data;
+            } else {
+                return false;
+            }
+        }
     }
 }

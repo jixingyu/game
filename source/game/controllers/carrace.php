@@ -146,6 +146,12 @@ class Carrace extends Front_Controller
             }
         }
 
+        // 计算积分 remote $points TODO
+        $this->load->library('szstage');
+        if (!$this->szstage->modify_game_points($this->user, $points)) {
+            $this->response(false, 201);
+        }
+
         // log
         $currentTime = time();
         $this->carrace_log_model->insert(array(
@@ -165,8 +171,6 @@ class Carrace extends Front_Controller
         } else {
             $this->carrace_play_model->update($updPlayData, array('uid' => $this->user['uid']));
         }
-
-        // 计算积分 remote $points TODO
 
         // 0：谢谢参与
         $this->response(array(

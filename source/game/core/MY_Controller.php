@@ -47,7 +47,7 @@ class Front_Controller extends Base_Controller
             // $pwd = 'app017858';
             $this->user = $this->userlib->login($data['mobile'], $data['pwd']);
             if (empty($this->user)) {
-                $this->response(false, 101);
+                exit;
             }
         } else {
             $this->user = $this->userlib->get_user();
@@ -63,8 +63,7 @@ class Front_Controller extends Base_Controller
             $result = $this->load->view($view, $vars, true);
             return $result;
         } else {
-            $vars['nickname'] = empty($this->user) ? '' : $this->user['name'];
-            $vars['points'] = empty($this->user) ? '' : $this->user['points'];
+            $vars['points'] = empty($this->user) ? 0 : $this->user['points'];
             $this->load->view($view, $vars);
         }
     }

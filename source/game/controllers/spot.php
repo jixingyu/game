@@ -94,7 +94,10 @@ class Spot extends Front_Controller
                 $updAward = json_encode($updAward);
                 // 计算积分 remote $points TODO
                 $this->load->library('szstage');
-                $this->szstage->modify_game_points($this->user, $award);
+                if (!$this->szstage->modify_game_points($this->user, $award)) {
+                    $this->response(false, 201);
+                }
+
                 break;
             }
         }
@@ -138,6 +141,10 @@ class Spot extends Front_Controller
             $consumePoints = $config['reminder_points'];
         } else {
             $consumePoints = $config['time_chunk_points'];
+        }
+        $this->load->library('szstage');
+        if (!$this->szstage->modify_game_points($this->user, -$consumePoints)) {
+            $this->response(false, 201);
         }
 
         $this->spot_consume_log_model->insert(array(
