@@ -351,7 +351,11 @@ BasicGame.Game.prototype = {
                 n++;
             }
         }
-        this.taskNum = this.rnd.integerInRange(this.math.floor(n/2), n)
+        var min = this.math.floor(n/2);
+        if (min == 0) {
+            min = 1;
+        }
+        this.taskNum = this.rnd.integerInRange(min, n)
         if (this.taskNum > 7) {
             this.taskNum = 7;
         }
