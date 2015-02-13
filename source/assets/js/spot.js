@@ -382,12 +382,19 @@ BasicGame.Game.prototype = {
             this.timeText.setText('00:00');
             this.ready = false;
 
+            var isEnd = false;
             var _self = this;
             sweetAlert({
                 title: "时间到！"
             }, function(){
+                isEnd = true;
                 _self.state.start('MainMenu');
             });
+            game.time.events.add(Phaser.Timer.SECOND * 5, function(){
+                if (!isEnd) {
+                    this.state.start('MainMenu');
+                }
+            }, this).autoDestroy = true;
         } else {
             this.timeText.setText(this.getRTime());
         }
