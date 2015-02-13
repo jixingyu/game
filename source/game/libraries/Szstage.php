@@ -33,7 +33,7 @@ class Szstage
     public function token()
     {
         $token = $this->CI->cache->get('szstage_token');
-        if (empty($token)) {
+        if (empty($token) || $token['expire'] <= 0) {
             $token = $this->signin();
             if (!empty($token)) {
                 $this->CI->cache->save('szstage_token', array(
