@@ -256,6 +256,7 @@ BasicGame.Game.prototype = {
         this.currentId = 0;
         this.ready = false;
         this.addPointsText = null;
+        this.findHeight = 810;
 
         this.sconfig = this.cache.getJSON('sconfig');
         this.sconfig = this.sconfig.data;
@@ -281,11 +282,11 @@ BasicGame.Game.prototype = {
             });
         }
 
-        game.world.setBounds(0, 0, 360, 900);
+        game.world.setBounds(0, 0, 360, this.findHeight + 90);
         game.inputEnabled = true;
         game.input.onDown.add(this.beginScroll, this);
 
-        var mt = new matrix(360, 810, imgs);
+        var mt = new matrix(360, this.findHeight, imgs);
 
         for (var i = 0; i < imgs.length; i++) {
             var img = imgs[i];
@@ -367,6 +368,7 @@ BasicGame.Game.prototype = {
         this.found.push(sprite.imgIndex);
         this.add.tween(sprite).to({ alpha: 0 }, 500, Phaser.Easing.Linear.None, true).onComplete.add(function() {
             var swap = null;
+            var swapFlag = false;
             for (var i = 0; i < this.deathImages.length; i++) {
                 if (this.deathImages[i].w == sprite.width && this.deathImages[i].h == sprite.height) {
                     if (inArray(this.currentTag, BasicGame.imageTags[this.deathImages[i].imgIndex])) {
@@ -375,6 +377,7 @@ BasicGame.Game.prototype = {
                         }
                         continue;
                     }
+                    swapFlag = true;
                     sprite.loadTexture('image'+this.deathImages[i].imgIndex);
                     this.add.tween(sprite).to({ alpha: 1 }, 500, Phaser.Easing.Linear.None, true);
                     var tmp = {
@@ -388,7 +391,7 @@ BasicGame.Game.prototype = {
                     break;
                 }
             }
-            if (swap != null) {
+            if (!swapFlag && swap != null) {
                 sprite.loadTexture('image'+this.deathImages[swap].imgIndex);
                 this.add.tween(sprite).to({ alpha: 1 }, 500, Phaser.Easing.Linear.None, true);
                 var tmp = {
@@ -399,6 +402,8 @@ BasicGame.Game.prototype = {
                 sprite.imgIndex = this.deathImages[swap].imgIndex;
                 this.deathImages.splice(swap, 1);
                 this.deathImages.push(tmp);
+            } else if (!swapFlag) {
+                this.add.tween(sprite).to({ alpha: 1 }, 500, Phaser.Easing.Linear.None, true);
             }
         }, this);
 
@@ -538,16 +543,31 @@ BasicGame.Game.prototype = {
     },
 
     doPrompt: function () {
-        for (var i = 0; i < this.activeImages.length; i++) {
-            if (inArray(this.currentTag, BasicGame.imageTags[this.activeImages[i].imgIndex])) {
-                this.promptTimes++;
-                if (this.activeImages[i].y > game.camera.y + 400) {
-                    game.camera.y += this.activeImages[i].y - game.camera.y - 400 + this.activeImages[i].height;
-                } else if (this.activeImages[i].y < game.camera.y + 40) {
-                    game.camera.y = 40 - this.activeImages[i].y + this.activeImages[i].height;
+        if (Math.random() > .5) {
+            for (var i = 0; i < this.activeImages.length; i++) {
+                if (inArray(this.currentTag, BasicGame.imageTags[this.activeImages[i].imgIndex])) {
+                    this.promptTimes++;
+                    if (this.activeImages[i].y > game.camera.y + 400) {
+                        game.camera.y = this.activeImages[i].y - 400 + this.activeImages[i].height + this.rnd.integerInRange(0, (this.findHeight - 180) / 2);
+                    } else if (this.activeImages[i].y < game.camera.y + 40) {
+                        game.camera.y = this.activeImages[i].y - 40 - this.rnd.integerInRange(0, (this.findHeight - 180) / 2);
+                    }
+                    this.findOne(this.activeImages[i]);
+                    return;
                 }
-                this.findOne(this.activeImages[i]);
-                return;
+            }
+        } else {
+            for (var i = this.activeImages.length - 1; i >= 0; i--) {
+                if (inArray(this.currentTag, BasicGame.imageTags[this.activeImages[i].imgIndex])) {
+                    this.promptTimes++;
+                    if (this.activeImages[i].y > game.camera.y + 400) {
+                        game.camera.y = this.activeImages[i].y - 400 + this.activeImages[i].height + this.rnd.integerInRange(0, (this.findHeight - 180) / 2);
+                    } else if (this.activeImages[i].y < game.camera.y + 40) {
+                        game.camera.y = this.activeImages[i].y - 40 - this.rnd.integerInRange(0, (this.findHeight - 180) / 2);
+                    }
+                    this.findOne(this.activeImages[i]);
+                    return;
+                }
             }
         }
     },
