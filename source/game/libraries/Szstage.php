@@ -69,6 +69,9 @@ class Szstage
 
     public function modify_game_points($user, $points)
     {
+        if ($points == 0) {
+            return true;
+        }
         $token = $this->token();
         if (empty($token)) {
             return false;

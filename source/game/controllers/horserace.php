@@ -33,8 +33,8 @@ class Horserace extends Front_Controller
         $playRank = array(1,2,3);
         $rank = array(1,2,3,4,5,6,7,8);
         $rankPoints = array();
-        $postR = $this->input->post('rank');
-        $postP = $this->input->post('rankPoints');
+        $postR = explode(',', $this->input->post('rank'));
+        $postP = explode(',', $this->input->post('rankPoints'));
         foreach ($playRank as $rankK) {
             if (!empty($postR[$rankK - 1])) {
                 $rankList[$rankK] = intval($postR[$rankK - 1]);
