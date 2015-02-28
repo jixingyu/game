@@ -62,6 +62,7 @@ class Carrace extends Admin_Controller
                     $post[$jsonKey] = json_encode($post[$jsonKey]);
                 }
                 $this->carrace_model->update($post, array());
+                $this->cache->delete('carrace_config');
                 $data['status'] = 1;
             }
         }

@@ -62,6 +62,7 @@ class Horserace extends Admin_Controller
                     $post[$jsonKey] = json_encode($post[$jsonKey]);
                 }
                 $this->horserace_model->update($post, array());
+                $this->cache->delete('horserace_config');
                 $data['status'] = 1;
             }
         }

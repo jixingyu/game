@@ -56,6 +56,7 @@ class Spot extends Admin_Controller
                     $post[$jsonKey] = json_encode($post[$jsonKey]);
                 }
                 $this->spot_model->update($post, array());
+                $this->cache->delete('spot_config');
                 $data['status'] = 1;
             }
         }

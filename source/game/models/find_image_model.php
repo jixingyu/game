@@ -10,7 +10,7 @@ class Find_image_model extends MY_Model
     public $table = 'find_image';
 
     public function tag_image($tagId) {
-        $sql = "select count(*) as cnt from {$this->table} where tags like '{$tagId}%' or tags like '%,{$tagId},%' or tags like '%{$tagId}'";
+        $sql = "select count(*) as cnt from {$this->table} where tags='{$tagId}' or tags like '{$tagId},%' or tags like '%,{$tagId},%' or tags like '%,{$tagId}'";
         $query = $this->db->query($sql);
 
         return $query->row_array();

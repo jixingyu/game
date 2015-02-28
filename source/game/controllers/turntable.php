@@ -15,13 +15,6 @@ class Turntable extends Front_Controller
         parent::__construct();
     }
 
-    public function test()
-    {
-        $this->load->library('szstage');
-        $pwd=strtoupper(md5('app017858'));
-        var_dump($this->szstage->get_by_mobile('13888888882',$pwd));exit;
-    }
-
     public function index()
     {
         $config = $this->getConfig();

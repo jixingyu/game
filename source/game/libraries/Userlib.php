@@ -29,10 +29,9 @@ class Userlib
      *
      * @return bool
      */
-    public function login($mobile, $pwd)
+    public function login($mobile, $pwdmd5)
     {
         $this->CI->load->library('szstage');
-        $pwdmd5 = strtoupper(md5($pwd));
         $loginData = $this->CI->szstage->get_user($mobile, $pwdmd5);
 
         if (!empty($loginData)) {

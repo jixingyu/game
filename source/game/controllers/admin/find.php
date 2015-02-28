@@ -60,6 +60,7 @@ class Find extends Admin_Controller
                     $post[$jsonKey] = json_encode($post[$jsonKey]);
                 }
                 $this->find_model->update($post, array());
+                $this->cache->delete('find_config');
                 $data['status'] = 1;
             }
         }
