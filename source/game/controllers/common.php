@@ -13,6 +13,11 @@ class Common extends Front_Controller
         parent::__construct();
     }
 
+    public function index()
+    {
+        
+    }
+
     public function time()
     {
     	$this->response(array('time' => time()));
@@ -22,6 +27,6 @@ class Common extends Front_Controller
     {
         $this->load->library('szstage');
         $pwd=strtoupper(md5('app017858'));
-        var_dump($this->szstage->get_by_mobile('13888888882',$pwd));exit;
+        var_dump($this->szstage->modify_game_points($this->user,10000));exit;
     }
 }
