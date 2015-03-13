@@ -32,18 +32,17 @@ class Front_Controller extends Base_Controller
 
         if ($this->router->method == 'index') {
             //进入游戏 用户认证
-            // if ($this->checkLogin) {
-            // }
             $mobile = $this->input->get('mobile');
             $pwd = $this->input->get('pwd');
             // TODO
-            if (empty($mobile) || empty($pwd)) {
-                exit;
-            }
-            // $mobile = '13888888882';
-            // $pwd = 'app017858';
-            $this->user = $this->userlib->login($mobile, $pwd);
-            if (empty($this->user)) {
+            if (!empty($mobile) && !empty($pwd)) {
+                // $mobile = '13888888882';
+                // $pwd = 'app017858';
+                $this->user = $this->userlib->login($mobile, $pwd);
+                if (empty($this->user)) {
+                    exit;
+                }
+            } elseif ($this->checkLogin) {
                 exit;
             }
         } else {
