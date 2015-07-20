@@ -38,7 +38,7 @@ class Horserace extends Front_Controller
         foreach ($playRank as $rankK) {
             if (!empty($postR[$rankK - 1])) {
                 $rankList[$rankK] = intval($postR[$rankK - 1]);
-                $rankPoints[$rankK] = intval($postP[$rankK - 1]);
+                $rankPoints[$rankK] = abs(intval($postP[$rankK - 1]));
             }
         }
         if (empty($rankList)) {

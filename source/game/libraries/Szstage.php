@@ -5,10 +5,10 @@ class Szstage
     private $CI;
     private $marginTime = 60;
 
-    private $server = 'http://api.sz-stage.com:82/';
+    private $server = 'http://api.online-stage.com:82/';
     private $platformId = 'bctest';
     private $platformPwd = 'bo23E%asn_23*v';
-    private $platformKey = 'bc11A23';
+    private $platformKey = 'kk45*SEI2ei#oa2U';
 
     public function __construct()
     {
@@ -19,7 +19,7 @@ class Szstage
     {
         return $this->curl_post('Platform/SignIn', array(
             'PlatformId' => $this->platformId,
-            'Password'   => $this->platformPwd,
+            'Password'   => $this->_encrypt($this->platformPwd . '|' . date('Y-m-d H:i:s'), $this->platformKey),
         ));
     }
 
@@ -132,5 +132,17 @@ class Szstage
                 return false;
             }
         }
+    }
+
+    private function _encrypt($input, $key){
+        $encrypted = mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $key, $input, MCRYPT_MODE_CBC, $key);
+        $data = strtoupper(bin2hex($encrypted));
+        return $data;
+    }
+
+    private function _decrypt($sStr, $sKey) {
+        $encryptedData=hex2bin($sStr);
+        $decrypted = mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $sKey, $encryptedData, MCRYPT_MODE_CBC, $sKey);
+        return $decrypted;
     }
 }
